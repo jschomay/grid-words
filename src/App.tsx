@@ -41,15 +41,37 @@ function App() {
   onMount(() => document.addEventListener("keydown", handleKeyDown))
   onCleanup(() => document.removeEventListener("keydown", handleKeyDown))
 
+  // TODO get Word data from ipuzz (correct length + active index)
+
   return (
     <>
       <div class="h-screen w-screen overflow-hidden flex justify-center items-center">
-        <div class="w-lg aspect-square overflow-hidden p-8">
-          <Puzzle offset={offset()} showFull={showFull()} puzzle={puzzle} />
-        </div >
+        <div class="grid auto-cols-[6rem_auto_6rem] grid-rows-[6rem_auto]">
+          <div class={`col-start-2 justify-self-center self-start transition-opacity ${showFull() && "opacity-0"}`}>
+            <Word direction="across" word={puzzle[offset().y]} index={offset().x} />
+          </div>
+          <div class="row-start-2 col-start-2 w-lg aspect-square overflow-hidden p-8">
+            <Puzzle offset={offset()} showFull={showFull()} puzzle={puzzle} />
+          </div >
+          <div class={`col-start-3 row-start-2 justify-self-end self-center transition-opacity ${showFull() && "opacity-0"}`}>
+            <Word direction="down" word={puzzle.map(row => row[offset().x])} index={offset().y} />
+          </div >
+        </div>
       </div >
     </>
   )
+}
+
+function Word(props: { direction: "down" | "across", word: string[], index: number }) {
+  const colors = (i: number) => i === props.index ? "bg-gray-300 text-white" : "text-gray-300"
+  return <div class={`text-3xl uppercase flex ${props.direction === "down" ? "flex-col" : "flex-row"}`}>
+    {
+      props.word.map((w, i) =>
+        <div class={`w-20 aspect-square border-2 border-gray-300 flex items-center justify-center ${colors(i)}`}>
+          <span>{w}</span>
+        </div>)
+    }
+  </div>
 }
 
 function Puzzle(props: { offset: { x: number, y: number }, showFull: boolean, puzzle: string[][] }) {
@@ -76,7 +98,7 @@ function Puzzle(props: { offset: { x: number, y: number }, showFull: boolean, pu
 function Cell(props: { r: number, c: number, value: string }) {
   return <div class={`cell  border-gray-300 border-2 rounded-3xl flex items-center justify-center ${props.value === "#" && "bg-gray-300"}`}>
     <Show when={props.value !== "#"}>
-      <span class="text-gray-500 uppercase text-9xl">{props.value}</span>
+      <span class="text-gray-300 uppercase text-9xl">{props.value}</span>
     </Show>
   </div>
 }
