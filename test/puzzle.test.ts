@@ -1,6 +1,6 @@
 import { describe, it, assert, expect, test } from 'vitest'
 
-import Puzzle from '../src/puzzle.ts';
+import IPuzz from '../src/puzzle.ts';
 
 describe('ipuz parsing', () => {
 
@@ -16,8 +16,17 @@ describe('ipuz parsing', () => {
     ],
     "clues": { "Across": [[1, "OR neighbor"], [3, "Droid"], [5, "Behold!"]], "Down": [[1, "Trucker's radio"], [2, "MSN competitor"], [4, "A preposition"]] }
   }
+
+  const ipuzNonIntersection = {
+    "dimensions": { "width": 3, "height": 3 },
+    "solution": [
+      ["#", "W", "#"],
+      ["B", "O", "T"],
+      ["#", "N", "O"]
+    ],
+  }
   it('iterates only white cells', () => {
-    let g = new Puzzle(ipuz)
+    let g = new IPuzz(ipuz)
 
     expect(g.current).to.equal("C");
     expect(g.next()).to.equal(true)
@@ -42,7 +51,7 @@ describe('ipuz parsing', () => {
         ["#", "N", "O"]
       ],
     }
-    let g = new Puzzle(ipuz)
+    let g = new IPuzz(ipuz)
 
     expect(g.current).to.equal("B");
   });
@@ -51,7 +60,7 @@ describe('ipuz parsing', () => {
     // ["C", "A", "#"],
     // ["B", "O", "T"],
     // ["#", "L", "O"]
-    let g = new Puzzle(ipuz)
+    let g = new IPuzz(ipuz)
     g.set({ x: 0, y: 0 })
     expect(g.getPrefixes()).to.deep.equal([{ prefix: "C", len: 2 }, { prefix: "C", len: 2 }])
 
@@ -67,17 +76,11 @@ describe('ipuz parsing', () => {
     g.set({ x: 1, y: 2 })
     expect(g.getPrefixes()).to.deep.equal([{ prefix: "L", len: 2 }, { prefix: "AOL", len: 3 }])
 
-    const ipuzNonIntersection = {
-      "dimensions": { "width": 3, "height": 3 },
-      "solution": [
-        ["#", "#", "#"],
-        ["B", "O", "T"],
-        ["#", "N", "O"]
-      ],
-    }
-    g = new Puzzle(ipuzNonIntersection)
-    g.set({ x: 0, y: 1 }) // B
+    g = new IPuzz(ipuzNonIntersection)
+    g.set({ x: 0, y: 1 })
     expect(g.getPrefixes()).to.deep.equal([{ prefix: "B", len: 3 }])
+    g.set({ x: 1, y: 0 })
+    expect(g.getPrefixes()).to.deep.equal([{ prefix: "W", len: 3 }])
 
     const ipuzTwoWordsOnRow = {
       "dimensions": { "width": 5, "height": 2 },
@@ -86,7 +89,7 @@ describe('ipuz parsing', () => {
         ["#", "N", "#", "N", "O"]
       ],
     }
-    g = new Puzzle(ipuzTwoWordsOnRow)
+    g = new IPuzz(ipuzTwoWordsOnRow)
     g.set({ x: 3, y: 0 }) // I
     expect(g.getPrefixes()).to.deep.equal([{ prefix: "I", len: 2 }, { prefix: "I", len: 2 }])
     g.set({ x: 0, y: 0 }) // I
@@ -94,10 +97,7 @@ describe('ipuz parsing', () => {
   })
 
   test("getWord returns word and index in word for direction and coord", () => {
-    // ["C", "A", "#"],
-    // ["B", "O", "T"],
-    // ["#", "L", "O"]
-    let p = new Puzzle(ipuz)
+    let p = new IPuzz(ipuz)
     p.set({ x: 0, y: 0 })
     assert.deepEqual(p.getWord("across"), [["C", "A"], 0])
     p.set({ x: 1, y: 0 })
@@ -117,6 +117,36 @@ describe('ipuz parsing', () => {
     p.set({ x: 2, y: 0 })
     assert.deepEqual(p.getWord("down"), [[], -1])
     assert.deepEqual(p.getWord("across"), [[], -1])
+
+    p = new IPuzz(ipuzNonIntersection)
+    p.set({ x: 1, y: 0 })
+    assert.deepEqual(p.getWord("down"), [["W", "O", "N"], 0])
+    assert.deepEqual(p.getWord("across"), [[], -1])
+  })
+
+  describe("stateless helpers", () => {
+    test("valueAt", () => {
+      // ["C", "A", "#"],
+      // ["B", "O", "T"],
+      // ["#", "L", "O"]
+      let p = new IPuzz(ipuz)
+      assert(p.valueAt({ x: 0, y: 0 }) === "C")
+      assert(p.valueAt({ x: 1, y: 2 }) === "L")
+      assert(p.valueAt({ x: 0, y: 2 }) === "#")
+      assert.throws(() => p.valueAt({ x: 9, y: 9 }) === "#")
+    })
+
+    test("wordsAt", () => {
+      let p = new IPuzz(ipuz)
+      assert.deepEqual(p.wordsAt({ x: 0, y: 0 }), [[["C", "A"], 0], [["C", "B"], 0]])
+      assert.deepEqual(p.wordsAt({ x: 2, y: 1 }), [[["B", "O", "T"], 2], [["T", "O"], 0]])
+
+      p = new IPuzz(ipuzNonIntersection)
+      assert.deepEqual(p.wordsAt({ x: 0, y: 1 }), [[["B", "O", "T"], 0], [[], -1]])
+      assert.deepEqual(p.wordsAt({ x: 1, y: 0 }), [[[], -1], [["W", "O", "N"], 0]])
+      assert.deepEqual(p.wordsAt({ x: 0, y: 0 }), [[[], -1], [[], -1]])
+      assert.throws(() => p.wordsAt({ x: 9, y: 9 }))
+    })
   })
 });
 
