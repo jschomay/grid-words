@@ -84,7 +84,8 @@ function App() {
     ["a", "p", "e", "#"],
     ["t", "#", "h", "i"],
   ]
-  const puzzle = makePuzzle(cells)
+  const puzzle = makePuzzle(full)
+  console.log(puzzle)
   const [showFull, setShowFull] = createSignal(true)
   const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
   const [guesses, setGuesses] = createSignal({})
@@ -132,7 +133,7 @@ function App() {
           <div class={`col-start-2 justify-self-center self-start transition-opacity ${showFull() && "opacity-0"}`}>
             <Word direction="across" word={puzzle.getWord("across")} />
           </div>
-          <div class="row-start-2 col-start-2 w-lg aspect-square overflow-hidden p-8">
+          <div class="row-start-2 col-start-2 w-2xl place-self-center aspect-square overflow-hidden p-8">
             <PuzzleGrid coords={coords()} puzzle={puzzle} showFull={showFull()} guesses={guesses()} />
           </div >
           <div class={`col-start-3 row-start-2 justify-self-end self-center transition-opacity ${showFull() && "opacity-0"}`}>
@@ -168,16 +169,22 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
       : `translate(-${100 * props.coords.x / w}%, -${100 * props.coords.y / h}%)`,
   })
 
-  let targetStyles = () => ({
+  let reticleStyles = () => ({
     width: `calc(100% / ${w})`,
     transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
   })
 
+  let grid = {
+    4: "grid-cols-4 grid-rows-4",
+    13: "grid-cols-13 grid-rows-13",
+    // NOTE, fill in for known puzzle sizes
+  }[w]
+
   return <div
     style={styles()}
-    class="text-violet-800 grid grid-cols-4 grid-rows-4 gap-8 transition-transform duration-300 origin-top-left"
+    class={`text-violet-800 grid ${grid} gap-8 transition-transform duration-300 origin-top-left`}
   >
-    <div style={targetStyles()} class="aspect-square absolute rounded-3xl border-18 border-red-400 transition-transform"></div>
+    <div style={reticleStyles()} class="aspect-square absolute rounded-3xl border-24 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell y={y} x={x}
         value={props.puzzle.valueAt({ x, y })}
@@ -196,3 +203,201 @@ function Cell(props: { y: number, x: number, value: string, status: string, gues
 }
 
 export default App
+
+const full = [
+  [
+    "P",
+    "S",
+    "Y",
+    "C",
+    "H",
+    "O",
+    "S",
+    "O",
+    "M",
+    "A",
+    "T",
+    "I",
+    "C"
+  ],
+  [
+    "O",
+    "#",
+    "O",
+    "#",
+    "E",
+    "#",
+    "K",
+    "#",
+    "I",
+    "#",
+    "O",
+    "#",
+    "A"
+  ],
+  [
+    "P",
+    "L",
+    "U",
+    "M",
+    "A",
+    "G",
+    "E",
+    "#",
+    "S",
+    "O",
+    "N",
+    "A",
+    "R"
+  ],
+  [
+    "#",
+    "#",
+    "N",
+    "#",
+    "P",
+    "#",
+    "W",
+    "#",
+    "P",
+    "#",
+    "G",
+    "#",
+    "N"
+  ],
+  [
+    "T",
+    "O",
+    "G",
+    "S",
+    "#",
+    "W",
+    "E",
+    "L",
+    "L",
+    "M",
+    "A",
+    "D",
+    "E"
+  ],
+  [
+    "E",
+    "#",
+    "E",
+    "#",
+    "C",
+    "#",
+    "D",
+    "#",
+    "A",
+    "#",
+    "#",
+    "#",
+    "L"
+  ],
+  [
+    "L",
+    "A",
+    "R",
+    "K",
+    "I",
+    "N",
+    "#",
+    "S",
+    "C",
+    "A",
+    "M",
+    "P",
+    "I"
+  ],
+  [
+    "E",
+    "#",
+    "#",
+    "#",
+    "A",
+    "#",
+    "C",
+    "#",
+    "E",
+    "#",
+    "A",
+    "#",
+    "A"
+  ],
+  [
+    "G",
+    "A",
+    "D",
+    "A",
+    "B",
+    "O",
+    "U",
+    "T",
+    "#",
+    "C",
+    "H",
+    "I",
+    "N"
+  ],
+  [
+    "E",
+    "#",
+    "E",
+    "#",
+    "A",
+    "#",
+    "T",
+    "#",
+    "C",
+    "#",
+    "J",
+    "#",
+    "#"
+  ],
+  [
+    "N",
+    "O",
+    "N",
+    "E",
+    "T",
+    "#",
+    "O",
+    "N",
+    "A",
+    "R",
+    "O",
+    "L",
+    "L"
+  ],
+  [
+    "I",
+    "#",
+    "I",
+    "#",
+    "T",
+    "#",
+    "F",
+    "#",
+    "R",
+    "#",
+    "N",
+    "#",
+    "I"
+  ],
+  [
+    "C",
+    "O",
+    "M",
+    "B",
+    "A",
+    "T",
+    "F",
+    "A",
+    "T",
+    "I",
+    "G",
+    "U",
+    "E"
+  ]
+]
