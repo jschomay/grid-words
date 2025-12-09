@@ -1,0 +1,674 @@
+{
+  "version": "http://ipuz.org/v2",
+  "kind": [
+    "http://ipuz.org/crossword#1"
+  ],
+  "dimensions": {
+    "width": 13,
+    "height": 13
+  },
+  "puzzle": [
+    [
+      1,
+      2,
+      3,
+      "#",
+      4,
+      5,
+      6,
+      7,
+      "#",
+      8,
+      9,
+      10,
+      11
+    ],
+    [
+      12,
+      0,
+      0,
+      "#",
+      13,
+      0,
+      0,
+      0,
+      "#",
+      14,
+      0,
+      0,
+      0
+    ],
+    [
+      15,
+      0,
+      0,
+      "#",
+      16,
+      0,
+      0,
+      0,
+      "#",
+      17,
+      0,
+      0,
+      0
+    ],
+    [
+      18,
+      0,
+      0,
+      19,
+      0,
+      0,
+      "#",
+      20,
+      21,
+      0,
+      "#",
+      "#",
+      "#"
+    ],
+    [
+      "#",
+      "#",
+      22,
+      0,
+      0,
+      0,
+      "#",
+      23,
+      0,
+      0,
+      24,
+      25,
+      26
+    ],
+    [
+      27,
+      28,
+      0,
+      0,
+      0,
+      "#",
+      29,
+      0,
+      0,
+      "#",
+      30,
+      0,
+      0
+    ],
+    [
+      31,
+      0,
+      0,
+      0,
+      "#",
+      32,
+      0,
+      0,
+      "#",
+      33,
+      0,
+      0,
+      0
+    ],
+    [
+      34,
+      0,
+      0,
+      "#",
+      35,
+      0,
+      0,
+      "#",
+      36,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      37,
+      0,
+      0,
+      38,
+      0,
+      0,
+      "#",
+      39,
+      0,
+      0,
+      0,
+      "#",
+      "#"
+    ],
+    [
+      "#",
+      "#",
+      "#",
+      40,
+      0,
+      0,
+      "#",
+      41,
+      0,
+      0,
+      0,
+      42,
+      43
+    ],
+    [
+      44,
+      45,
+      46,
+      0,
+      "#",
+      47,
+      48,
+      0,
+      0,
+      "#",
+      49,
+      0,
+      0
+    ],
+    [
+      50,
+      0,
+      0,
+      0,
+      "#",
+      51,
+      0,
+      0,
+      0,
+      "#",
+      52,
+      0,
+      0
+    ],
+    [
+      53,
+      0,
+      0,
+      0,
+      "#",
+      54,
+      0,
+      0,
+      0,
+      "#",
+      55,
+      0,
+      0
+    ]
+  ],
+  "solution": [
+    [
+      "U",
+      "N",
+      "O",
+      "#",
+      "R",
+      "I",
+      "F",
+      "E",
+      "#",
+      "B",
+      "E",
+      "S",
+      "T"
+    ],
+    [
+      "L",
+      "O",
+      "P",
+      "#",
+      "E",
+      "D",
+      "I",
+      "T",
+      "#",
+      "E",
+      "R",
+      "I",
+      "E"
+    ],
+    [
+      "N",
+      "O",
+      "T",
+      "#",
+      "L",
+      "O",
+      "B",
+      "E",
+      "#",
+      "S",
+      "A",
+      "N",
+      "E"
+    ],
+    [
+      "A",
+      "N",
+      "I",
+      "M",
+      "A",
+      "L",
+      "#",
+      "R",
+      "Y",
+      "E",
+      "#",
+      "#",
+      "#"
+    ],
+    [
+      "#",
+      "#",
+      "M",
+      "A",
+      "T",
+      "S",
+      "#",
+      "N",
+      "A",
+      "T",
+      "I",
+      "O",
+      "N"
+    ],
+    [
+      "C",
+      "H",
+      "I",
+      "M",
+      "E",
+      "#",
+      "S",
+      "A",
+      "P",
+      "#",
+      "T",
+      "O",
+      "E"
+    ],
+    [
+      "L",
+      "O",
+      "S",
+      "E",
+      "#",
+      "P",
+      "A",
+      "L",
+      "#",
+      "S",
+      "I",
+      "Z",
+      "E"
+    ],
+    [
+      "A",
+      "N",
+      "T",
+      "#",
+      "B",
+      "O",
+      "Y",
+      "#",
+      "M",
+      "I",
+      "N",
+      "E",
+      "D"
+    ],
+    [
+      "D",
+      "E",
+      "S",
+      "E",
+      "R",
+      "T",
+      "#",
+      "P",
+      "O",
+      "L",
+      "E",
+      "#",
+      "#"
+    ],
+    [
+      "#",
+      "#",
+      "#",
+      "V",
+      "A",
+      "T",
+      "#",
+      "A",
+      "D",
+      "O",
+      "R",
+      "E",
+      "S"
+    ],
+    [
+      "A",
+      "B",
+      "L",
+      "E",
+      "#",
+      "E",
+      "D",
+      "G",
+      "E",
+      "#",
+      "A",
+      "L",
+      "L"
+    ],
+    [
+      "L",
+      "A",
+      "I",
+      "R",
+      "#",
+      "R",
+      "U",
+      "E",
+      "S",
+      "#",
+      "R",
+      "S",
+      "I"
+    ],
+    [
+      "P",
+      "R",
+      "E",
+      "Y",
+      "#",
+      "S",
+      "O",
+      "R",
+      "T",
+      "#",
+      "Y",
+      "E",
+      "T"
+    ]
+  ],
+  "clues": {
+    "Across": [
+      [
+        1,
+        "Important numero"
+      ],
+      [
+        4,
+        "Hardly scarce"
+      ],
+      [
+        8,
+        "Award-category word"
+      ],
+      [
+        12,
+        "Do some trimming"
+      ],
+      [
+        13,
+        "Abridge, maybe"
+      ],
+      [
+        14,
+        "Canal of song"
+      ],
+      [
+        15,
+        "Alternative to ready?"
+      ],
+      [
+        16,
+        "Part of the pinna"
+      ],
+      [
+        17,
+        "Able to stand trial"
+      ],
+      [
+        18,
+        "Cracker type"
+      ],
+      [
+        20,
+        "A pocketful, in rhyme"
+      ],
+      [
+        22,
+        "Gym equipment"
+      ],
+      [
+        23,
+        "Land"
+      ],
+      [
+        27,
+        "Ring of time"
+      ],
+      [
+        29,
+        "Undermine"
+      ],
+      [
+        30,
+        "Extremity"
+      ],
+      [
+        31,
+        "Bring up the field"
+      ],
+      [
+        32,
+        "Trusted one"
+      ],
+      [
+        33,
+        "Tag info"
+      ],
+      [
+        34,
+        "Certain colonist"
+      ],
+      [
+        35,
+        "Man of tomorrow"
+      ],
+      [
+        36,
+        "Got the lead out?"
+      ],
+      [
+        37,
+        "Painted, e.g."
+      ],
+      [
+        39,
+        "Fishing need"
+      ],
+      [
+        40,
+        "Chemical container"
+      ],
+      [
+        41,
+        "Digs deeply?"
+      ],
+      [
+        44,
+        "Equal to the task"
+      ],
+      [
+        47,
+        "Fringe"
+      ],
+      [
+        49,
+        "The works"
+      ],
+      [
+        50,
+        "Cave, possibly"
+      ],
+      [
+        51,
+        "Harbors remorse"
+      ],
+      [
+        52,
+        "Typist's ailment"
+      ],
+      [
+        53,
+        "Carnivore's quarry"
+      ],
+      [
+        54,
+        "Alphabetize, say"
+      ],
+      [
+        55,
+        "&quot;But then again...&quot;"
+      ]
+    ],
+    "Down": [
+      [
+        1,
+        "Elbow-wrist connector"
+      ],
+      [
+        2,
+        "Day break?"
+      ],
+      [
+        3,
+        "They expect the best"
+      ],
+      [
+        4,
+        "Interact"
+      ],
+      [
+        5,
+        "Causes of some swoons"
+      ],
+      [
+        6,
+        "Minor invention"
+      ],
+      [
+        7,
+        "Adjective for Rome"
+      ],
+      [
+        8,
+        "Fall upon"
+      ],
+      [
+        9,
+        "Big stretch?"
+      ],
+      [
+        10,
+        "Do the wrong thing"
+      ],
+      [
+        11,
+        "Country club buy"
+      ],
+      [
+        19,
+        "Broadway title gal"
+      ],
+      [
+        21,
+        "Imitate an annoying dog"
+      ],
+      [
+        24,
+        "Traveler's check?"
+      ],
+      [
+        25,
+        "Bilge buildup"
+      ],
+      [
+        26,
+        "Basis for some grants"
+      ],
+      [
+        27,
+        "Covered"
+      ],
+      [
+        28,
+        "Give an edge to?"
+      ],
+      [
+        29,
+        "Right to decide"
+      ],
+      [
+        32,
+        "They work on wheels"
+      ],
+      [
+        33,
+        "Corn Belt sight"
+      ],
+      [
+        35,
+        "Bandeau, for short"
+      ],
+      [
+        36,
+        "Far from showy"
+      ],
+      [
+        38,
+        "More than most"
+      ],
+      [
+        39,
+        "Airport caller"
+      ],
+      [
+        42,
+        "&quot;Anything ___?&quot;"
+      ],
+      [
+        43,
+        "Buttonhole, essentially"
+      ],
+      [
+        44,
+        "Yodeler's perch"
+      ],
+      [
+        45,
+        "Rule out"
+      ],
+      [
+        46,
+        "Be flat?"
+      ],
+      [
+        48,
+        "Comedy team, usually"
+      ]
+    ]
+  }
+}

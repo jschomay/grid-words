@@ -1,6 +1,7 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
+import ipuz from '../puzzle.ipuz?raw'
 
 type Coord = { x: number, y: number }
 
@@ -78,17 +79,18 @@ const rightLetterWrongSpot = (guesses: Record<string, string>, coord: Coord, puz
 }
 
 function App() {
-  const cells = [
-    ["t", "h", "i", "s"],
-    ["h", "i", "#", "o"],
-    ["a", "p", "e", "#"],
-    ["t", "#", "h", "i"],
-  ]
-  const puzzle = makePuzzle(full)
-  console.log(puzzle)
+  // const cells = [
+  //   ["t", "h", "i", "s"],
+  //   ["h", "i", "#", "o"],
+  //   ["a", "p", "e", "#"],
+  //   ["t", "#", "h", "i"],
+  // ]
+  // const puzzle = makePuzzle()
+
+  const puzzle = new Puzzle(JSON.parse(ipuz))
   const [showFull, setShowFull] = createSignal(true)
   const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
-  const [guesses, setGuesses] = createSignal({})
+  const [guesses, setGuesses] = createSignal<Record<string, string>>({})
 
   const toggleZoom = () => setShowFull(!showFull())
   const move = (dx: number, dy: number) => {
@@ -97,7 +99,10 @@ function App() {
       y: Math.min(puzzle.ipuz.dimensions.height - 1, Math.max(0, coords.y + dy))
     }))
   }
-  const guess = (guess: string) => setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
+  const guess = (guess: string) => {
+    if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
+    setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
+  }
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.code === "Space") {
@@ -128,7 +133,7 @@ function App() {
 
   return (
     <>
-      <div class="h-screen w-screen overflow-hidden flex justify-center items-center">
+      <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex justify-center items-center">
         <div class="grid auto-cols-[6rem_auto_6rem] grid-rows-[6rem_auto]">
           <div class={`col-start-2 justify-self-center self-start transition-opacity ${showFull() && "opacity-0"}`}>
             <Word direction="across" word={puzzle.getWord("across")} />
@@ -184,7 +189,7 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
     style={styles()}
     class={`text-violet-800 grid ${grid} gap-8 transition-transform duration-300 origin-top-left`}
   >
-    <div style={reticleStyles()} class="aspect-square absolute rounded-3xl border-24 border-red-400 transition-transform"></div>
+    <div style={reticleStyles()} class="aspect-square absolute rounded-3xl border-48 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell y={y} x={x}
         value={props.puzzle.valueAt({ x, y })}
@@ -197,207 +202,9 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
 function Cell(props: { y: number, x: number, value: string, status: string, guess: string }) {
   return <div class={`border-gray-700 border-2 rounded-3xl flex items-center justify-center ${props.status}`}>
     <Show when={props.value !== "#"}>
-      <span class="text-black dark:text-white uppercase text-9xl">{props.guess}</span>
+      <span class="text-white uppercase text-[20rem]">{props.guess}</span>
     </Show>
   </div>
 }
 
 export default App
-
-const full = [
-  [
-    "P",
-    "S",
-    "Y",
-    "C",
-    "H",
-    "O",
-    "S",
-    "O",
-    "M",
-    "A",
-    "T",
-    "I",
-    "C"
-  ],
-  [
-    "O",
-    "#",
-    "O",
-    "#",
-    "E",
-    "#",
-    "K",
-    "#",
-    "I",
-    "#",
-    "O",
-    "#",
-    "A"
-  ],
-  [
-    "P",
-    "L",
-    "U",
-    "M",
-    "A",
-    "G",
-    "E",
-    "#",
-    "S",
-    "O",
-    "N",
-    "A",
-    "R"
-  ],
-  [
-    "#",
-    "#",
-    "N",
-    "#",
-    "P",
-    "#",
-    "W",
-    "#",
-    "P",
-    "#",
-    "G",
-    "#",
-    "N"
-  ],
-  [
-    "T",
-    "O",
-    "G",
-    "S",
-    "#",
-    "W",
-    "E",
-    "L",
-    "L",
-    "M",
-    "A",
-    "D",
-    "E"
-  ],
-  [
-    "E",
-    "#",
-    "E",
-    "#",
-    "C",
-    "#",
-    "D",
-    "#",
-    "A",
-    "#",
-    "#",
-    "#",
-    "L"
-  ],
-  [
-    "L",
-    "A",
-    "R",
-    "K",
-    "I",
-    "N",
-    "#",
-    "S",
-    "C",
-    "A",
-    "M",
-    "P",
-    "I"
-  ],
-  [
-    "E",
-    "#",
-    "#",
-    "#",
-    "A",
-    "#",
-    "C",
-    "#",
-    "E",
-    "#",
-    "A",
-    "#",
-    "A"
-  ],
-  [
-    "G",
-    "A",
-    "D",
-    "A",
-    "B",
-    "O",
-    "U",
-    "T",
-    "#",
-    "C",
-    "H",
-    "I",
-    "N"
-  ],
-  [
-    "E",
-    "#",
-    "E",
-    "#",
-    "A",
-    "#",
-    "T",
-    "#",
-    "C",
-    "#",
-    "J",
-    "#",
-    "#"
-  ],
-  [
-    "N",
-    "O",
-    "N",
-    "E",
-    "T",
-    "#",
-    "O",
-    "N",
-    "A",
-    "R",
-    "O",
-    "L",
-    "L"
-  ],
-  [
-    "I",
-    "#",
-    "I",
-    "#",
-    "T",
-    "#",
-    "F",
-    "#",
-    "R",
-    "#",
-    "N",
-    "#",
-    "I"
-  ],
-  [
-    "C",
-    "O",
-    "M",
-    "B",
-    "A",
-    "T",
-    "F",
-    "A",
-    "T",
-    "I",
-    "G",
-    "U",
-    "E"
-  ]
-]
