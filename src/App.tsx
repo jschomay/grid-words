@@ -1,7 +1,8 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
-import ipuz from '../puzzle.ipuz?raw'
+// 04-08
+import ipuz from '../public/puzzles/04.json?raw'
 
 type Coord = { x: number, y: number }
 
@@ -181,6 +182,7 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
 
   let grid = {
     4: "grid-cols-4 grid-rows-4",
+    5: "grid-cols-5 grid-rows-5",
     13: "grid-cols-13 grid-rows-13",
     // NOTE, fill in for known puzzle sizes
   }[w]

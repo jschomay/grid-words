@@ -1,0 +1,133 @@
+{
+  "version": "http://ipuz.org/v1",
+  "kind": [
+    "http://ipuz.org/crossword#1"
+  ],
+  "title": "Thursday’s Daily",
+  "author": "Pete Muller & Frank Longo",
+  "copyright": "",
+  "dimensions": {
+    "width": 5,
+    "height": 5
+  },
+  "puzzle": [
+    [
+      "#",
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      "#",
+      5,
+      null,
+      null,
+      null
+    ],
+    [
+      6,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      7,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      8,
+      null,
+      null,
+      null,
+      null
+    ]
+  ],
+  "solution": [
+    [
+      "#",
+      "A",
+      "C",
+      "T",
+      "I"
+    ],
+    [
+      "#",
+      "S",
+      "A",
+      "A",
+      "B"
+    ],
+    [
+      "S",
+      "T",
+      "U",
+      "B",
+      "S"
+    ],
+    [
+      "A",
+      "I",
+      "S",
+      "L",
+      "E"
+    ],
+    [
+      "G",
+      "R",
+      "E",
+      "E",
+      "N"
+    ]
+  ],
+  "clues": {
+    "Across": [
+      [
+        1,
+        "Follower of a curtain-raising"
+      ],
+      [
+        5,
+        "Its first car was the 92, in 1949"
+      ],
+      [
+        6,
+        "Things ushers often look at"
+      ],
+      [
+        7,
+        "Thing an usher often goes down"
+      ],
+      [
+        8,
+        "A golfer might drive onto it"
+      ]
+    ],
+    "Down": [
+      [
+        1,
+        "See 2-Down"
+      ],
+      [
+        2,
+        "With 1-Down, ruffle some feathers"
+      ],
+      [
+        3,
+        "Need for pool or Ping-Pong"
+      ],
+      [
+        4,
+        "Creator of Hedda Gabler and Little Eyolf"
+      ],
+      [
+        6,
+        "Old sofa's problem"
+      ]
+    ]
+  }
+}

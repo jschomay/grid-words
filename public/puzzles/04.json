@@ -1,0 +1,133 @@
+{
+  "version": "http://ipuz.org/v1",
+  "kind": [
+    "http://ipuz.org/crossword#1"
+  ],
+  "title": "Monday’s Daily",
+  "author": "Pete Muller & Frank Longo",
+  "copyright": "",
+  "dimensions": {
+    "width": 5,
+    "height": 5
+  },
+  "puzzle": [
+    [
+      "#",
+      1,
+      2,
+      3,
+      4
+    ],
+    [
+      5,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      6,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      7,
+      null,
+      null,
+      null,
+      null
+    ],
+    [
+      8,
+      null,
+      null,
+      "#",
+      "#"
+    ]
+  ],
+  "solution": [
+    [
+      "#",
+      "F",
+      "I",
+      "J",
+      "I"
+    ],
+    [
+      "S",
+      "A",
+      "L",
+      "U",
+      "D"
+    ],
+    [
+      "A",
+      "M",
+      "I",
+      "N",
+      "O"
+    ],
+    [
+      "G",
+      "E",
+      "E",
+      "K",
+      "S"
+    ],
+    [
+      "E",
+      "D",
+      "D",
+      "#",
+      "#"
+    ]
+  ],
+  "clues": {
+    "Across": [
+      [
+        1,
+        "Permanent setting of \"Survivor\" since season 33 in 2016"
+      ],
+      [
+        5,
+        "Spanish toast"
+      ],
+      [
+        6,
+        "Like the group -NH2, in chemistry"
+      ],
+      [
+        7,
+        "The \"Oxford Five\" on Netflix's \"3 Body Problem,\" e.g."
+      ],
+      [
+        8,
+        "Actor Byrnes or fielder Roush"
+      ]
+    ],
+    "Down": [
+      [
+        1,
+        "In a who's who, say"
+      ],
+      [
+        2,
+        "Swindler's retort to \"But you promised!\""
+      ],
+      [
+        3,
+        "Tossed stuff, often"
+      ],
+      [
+        4,
+        "They're exchanged at weddings"
+      ],
+      [
+        5,
+        "Like advice well worth heeding"
+      ]
+    ]
+  }
+}
