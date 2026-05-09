@@ -2,7 +2,7 @@ import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
 // 04-08
-import ipuz from '../public/puzzles/04.json?raw'
+import ipuz from '../public/puzzles/05.json?raw'
 
 type Coord = { x: number, y: number }
 
@@ -26,8 +26,10 @@ const status = (guesses: Record<string, string>, coord: Coord, puzzle: Puzzle) =
     return "bg-gray-700"
   } else if (guess && guess.toLowerCase() === puzzle.valueAt(coord).toLowerCase()) {
     return "bg-green-400"
-  } else if (rightLetterWrongSpot(guesses, coord, puzzle)) {
+  } else if (letterIsInRowOrColStill(guesses, coord, puzzle)) {
     return "bg-yellow-400"
+  } else if (letterIsInPuzzleStill(guess, guesses, puzzle)) {
+    return "bg-indigo-400"
   } else if (guess) {
     return "bg-gray-400"
   } else {
@@ -43,7 +45,7 @@ const wordToPuzzleCoords = (coord: Coord, word: string[], wordIndex: number, dir
   }
 }
 
-const rightLetterWrongSpot = (guesses: Record<string, string>, coord: Coord, puzzle: Puzzle): boolean => {
+const letterIsInRowOrColStill = (guesses: Record<string, string>, coord: Coord, puzzle: Puzzle): boolean => {
   let [across, down] = puzzle.wordsAt(coord)
   across[0] = across[0].map(c => c.toLowerCase())
   down[0] = down[0].map(c => c.toLowerCase())
@@ -59,24 +61,31 @@ const rightLetterWrongSpot = (guesses: Record<string, string>, coord: Coord, puz
   down[0] = down[0].map((v, i) => v === guessesDown[i] ? redacted : v)
 
   // remove already guessed right-letter-wrong-spot from words
-  for (let i = 0; i < across[1]; i++) {
-    if (across[0][i] === redacted) continue
-
-    let foundIndex = across[0].indexOf(guessesAcross[i])
-    if (foundIndex >= 0) {
-      across[0][foundIndex] = redacted
-    }
-  }
-  for (let i = 0; i < down[1]; i++) {
-    if (down[0][i] === redacted) continue
-
-    let foundIndex = down[0].indexOf(guessesDown[i])
-    if (foundIndex >= 0) {
-      down[0][foundIndex] = redacted
-    }
-  }
+  // commented out because with letterIsInPuzzleStill clue it is better to know yellow means row has letter but count doesn't matter as much
+  // for (let i = 0; i < across[1]; i++) {
+  //   if (across[0][i] === redacted) continue
+  //
+  //   let foundIndex = across[0].indexOf(guessesAcross[i])
+  //   if (foundIndex >= 0) {
+  //     across[0][foundIndex] = redacted
+  //   }
+  // }
+  // for (let i = 0; i < down[1]; i++) {
+  //   if (down[0][i] === redacted) continue
+  //
+  //   let foundIndex = down[0].indexOf(guessesDown[i])
+  //   if (foundIndex >= 0) {
+  //     down[0][foundIndex] = redacted
+  //   }
+  // }
 
   return across[0].concat(down[0]).includes(guesses[coordToString(coord)])
+}
+
+const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, puzzle: Puzzle) => {
+  return puzzle.ipuz.solution
+    .flatMap((row, y) => row.filter((cell, x) => !guesses[coordToString({ x, y })]))
+    .includes(guess?.toUpperCase())
 }
 
 function App() {
