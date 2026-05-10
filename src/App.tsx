@@ -92,6 +92,8 @@ function App() {
       move(1, 0)
     } else if (e.key >= "a" && e.key <= "z") {
       guess(e.key)
+    } else if (e.key === "Backspace") {
+      guess("")
     }
   }
 
