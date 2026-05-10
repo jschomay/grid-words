@@ -66,6 +66,7 @@ const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, p
 
 const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
 const [guesses, setGuesses] = createSignal<Record<string, string>>({})
+const [deadLetters, setDeadLetters] = createSignal<Set<string>>(new Set())
 
 function App() {
   const puzzle = new Puzzle(JSON.parse(ipuz))
@@ -79,6 +80,8 @@ function App() {
   const guess = (guess: string) => {
     if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
     setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
+
+    if (!letterIsInPuzzleStill(guess, guesses(), puzzle)) setDeadLetters(d => new Set([...d, guess]))
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,7 +96,11 @@ function App() {
     } else if (e.key >= "a" && e.key <= "z") {
       guess(e.key)
     } else if (e.key === "Backspace") {
-      guess("")
+      if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
+      setGuesses((g) => {
+        delete g[coordToString(coords())]
+        return ({ ...g })
+      })
     }
   }
 
@@ -102,16 +109,17 @@ function App() {
 
   return (
     <>
-      <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center">
+      <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center space-y-8">
         <Title />
         <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
+        <DeadLetters />
       </div >
     </>
   )
 }
 
 function Title() {
-  return <div class={`w-xs mb-8 relative grid grid-cols-6 grid-rows-2 gap-1`} >
+  return <div class={`w-xs grid grid-cols-6 grid-rows-2 gap-1`} >
     <Cell guess="C" status={CORRECT} value="" fontSize='text-4xl' />
     <Cell guess="R" status={IN_PUZZLE} value="" fontSize='text-4xl' />
     <Cell guess="O" status={IN_ROW} value="" fontSize='text-4xl' />
@@ -119,12 +127,22 @@ function Title() {
     <Cell guess="S" status={CORRECT} value="" fontSize='text-4xl' />
     <Cell guess="" status={EMPTY} value="" fontSize='text-4xl' />
     <Cell guess="W" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="O" status={IN_PUZZLE} value="" fontSize='text-4xl' />
-    <Cell guess="R" status={IN_ROW} value="" fontSize='text-4xl' />
-    <Cell guess="D" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="O" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="R" status={IN_PUZZLE} value="" fontSize='text-4xl' />
+    <Cell guess="D" status={IN_ROW} value="" fontSize='text-4xl' />
     <Cell guess="L" status={CORRECT} value="" fontSize='text-4xl' />
     <Cell guess="E" status={CORRECT} value="" fontSize='text-4xl' />
   </div>
+}
+
+function DeadLetters() {
+  return <div class={`w-md min-h-8 flex flex-wrap items-start space-y-2 space-x-2`} >
+    {[...deadLetters()].map(char => {
+      return <div class={`aspect-square w-8 rounded-lg ${WRONG} text-white flex items-center justify-center`}>
+        <span class="text-white uppercase text-3xl"> {char}</span>
+      </div>
+    })}
+  </div >
 }
 
 function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<string, string> }) {
