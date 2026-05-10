@@ -64,11 +64,11 @@ const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, p
     .includes(guess?.toUpperCase())
 }
 
+const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
+const [guesses, setGuesses] = createSignal<Record<string, string>>({})
+
 function App() {
   const puzzle = new Puzzle(JSON.parse(ipuz))
-  const [showFull, setShowFull] = createSignal(true)
-  const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
-  const [guesses, setGuesses] = createSignal<Record<string, string>>({})
 
   const move = (dx: number, dy: number) => {
     setCoords(coords => ({
@@ -104,7 +104,7 @@ function App() {
     <>
       <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center">
         <Title />
-        <PuzzleGrid coords={coords()} puzzle={puzzle} showFull={showFull()} guesses={guesses()} />
+        <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
       </div >
     </>
   )
@@ -127,7 +127,7 @@ function Title() {
   </div>
 }
 
-function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, guesses: Record<string, string> }) {
+function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<string, string> }) {
   let w = props.puzzle.ipuz.dimensions.width
 
   let reticleStyles = () => ({
@@ -139,6 +139,8 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
     <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell
+        x={x}
+        y={y}
         value={props.puzzle.valueAt({ x, y })}
         status={status(props.guesses, { x, y }, props.puzzle)}
         guess={props.guesses[coordToString({ x, y })]} />
@@ -146,9 +148,12 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
   </div>
 }
 
-function Cell(props: { value: string, status: string, guess: string, fontSize?: undefined | string }) {
+function Cell(props: { x?: number, y?: number, value: string, status: string, guess: string, fontSize?: undefined | string }) {
   const fontSize = props.fontSize || "text-6xl"
-  return <div class={`aspect-square border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}>
+  return <div
+    class={`aspect-square border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}
+    onClick={() => props.x !== undefined && props.y !== undefined && setCoords({ x: props.x, y: props.y })}
+  >
     <Show when={props.value !== "#"}>
       <span class={`text-white uppercase ${fontSize}`}>{props.guess}</span>
     </Show>
