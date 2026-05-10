@@ -2,7 +2,7 @@ import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
 // 04-08
-import ipuz from '../public/puzzles/05.json?raw'
+import ipuz from '../public/puzzles/06.json?raw'
 
 type Coord = { x: number, y: number }
 const EMPTY = "bg-gray-700"
@@ -60,7 +60,7 @@ const letterIsInRowOrColStill = (guesses: Record<string, string>, coord: Coord, 
 
 const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, puzzle: Puzzle) => {
   return puzzle.ipuz.solution
-    .flatMap((row, y) => row.filter((cell, x) => !guesses[coordToString({ x, y })]))
+    .flatMap((row, y) => row.filter((cell, x) => guesses[coordToString({ x, y })]?.toLowerCase() !== cell.toLowerCase()))
     .includes(guess?.toUpperCase())
 }
 
