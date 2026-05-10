@@ -5,6 +5,11 @@ import { createStore, produce } from 'solid-js/store'
 import ipuz from '../public/puzzles/05.json?raw'
 
 type Coord = { x: number, y: number }
+const EMPTY = "bg-gray-700"
+const CORRECT = "bg-green-400"
+const IN_ROW = "bg-yellow-400"
+const IN_PUZZLE = "bg-indigo-400"
+const WRONG = "bg-gray-400"
 
 function coordToString({ x, y }: Coord): string {
   return `${x},${y}`
@@ -13,15 +18,15 @@ function coordToString({ x, y }: Coord): string {
 const status = (guesses: Record<string, string>, coord: Coord, puzzle: Puzzle) => {
   const guess = guesses[coordToString(coord)]
   if (puzzle.valueAt(coord) === "#") {
-    return "bg-gray-700"
+    return EMPTY
   } else if (guess && guess.toLowerCase() === puzzle.valueAt(coord).toLowerCase()) {
-    return "bg-green-400"
+    return CORRECT
   } else if (letterIsInRowOrColStill(guesses, coord, puzzle)) {
-    return "bg-yellow-400"
+    return IN_ROW
   } else if (letterIsInPuzzleStill(guess, guesses, puzzle)) {
-    return "bg-indigo-400"
+    return IN_PUZZLE
   } else if (guess) {
-    return "bg-gray-400"
+    return WRONG
   } else {
     return "bg-white"
   }
@@ -95,11 +100,29 @@ function App() {
 
   return (
     <>
-      <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex justify-center items-center">
+      <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center">
+        <Title />
         <PuzzleGrid coords={coords()} puzzle={puzzle} showFull={showFull()} guesses={guesses()} />
       </div >
     </>
   )
+}
+
+function Title() {
+  return <div class={`w-xs mb-8 relative grid grid-cols-6 grid-rows-2 gap-1`} >
+    <Cell guess="C" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="R" status={IN_PUZZLE} value="" fontSize='text-4xl' />
+    <Cell guess="O" status={IN_ROW} value="" fontSize='text-4xl' />
+    <Cell guess="S" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="S" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="" status={EMPTY} value="" fontSize='text-4xl' />
+    <Cell guess="W" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="O" status={IN_PUZZLE} value="" fontSize='text-4xl' />
+    <Cell guess="R" status={IN_ROW} value="" fontSize='text-4xl' />
+    <Cell guess="D" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="L" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="E" status={CORRECT} value="" fontSize='text-4xl' />
+  </div>
 }
 
 function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, guesses: Record<string, string> }) {
@@ -110,12 +133,10 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
     transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
   })
 
-  return <div
-    class={`w-md relative aspect-square grid grid-cols-5 grid-rows-5 gap-1`}
-  >
+  return <div class={`w-md relative aspect-square grid grid-cols-5 grid-rows-5 gap-1`} >
     <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
-      return <Cell y={y} x={x}
+      return <Cell
         value={props.puzzle.valueAt({ x, y })}
         status={status(props.guesses, { x, y }, props.puzzle)}
         guess={props.guesses[coordToString({ x, y })]} />
@@ -123,10 +144,11 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
   </div>
 }
 
-function Cell(props: { y: number, x: number, value: string, status: string, guess: string }) {
-  return <div class={`border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}>
+function Cell(props: { value: string, status: string, guess: string, fontSize?: undefined | string }) {
+  const fontSize = props.fontSize || "text-6xl"
+  return <div class={`aspect-square border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}>
     <Show when={props.value !== "#"}>
-      <span class="text-white uppercase text-6xl">{props.guess}</span>
+      <span class={`text-white uppercase ${fontSize}`}>{props.guess}</span>
     </Show>
   </div>
 }
