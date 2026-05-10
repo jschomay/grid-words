@@ -6,16 +6,6 @@ import ipuz from '../public/puzzles/05.json?raw'
 
 type Coord = { x: number, y: number }
 
-function makePuzzle(cells: string[][]): Puzzle {
-  return new Puzzle({
-    "version": "http://ipuz.org/v2",
-    "kind": ["http://ipuz.org/crossword#1"],
-    "dimensions": { "width": cells[0].length, "height": cells.length },
-    "puzzle": [],
-    "solution": cells,
-  })
-}
-
 function coordToString({ x, y }: Coord): string {
   return `${x},${y}`
 }
@@ -60,25 +50,6 @@ const letterIsInRowOrColStill = (guesses: Record<string, string>, coord: Coord, 
   across[0] = across[0].map((v, i) => v === guessesAcross[i] ? redacted : v)
   down[0] = down[0].map((v, i) => v === guessesDown[i] ? redacted : v)
 
-  // remove already guessed right-letter-wrong-spot from words
-  // commented out because with letterIsInPuzzleStill clue it is better to know yellow means row has letter but count doesn't matter as much
-  // for (let i = 0; i < across[1]; i++) {
-  //   if (across[0][i] === redacted) continue
-  //
-  //   let foundIndex = across[0].indexOf(guessesAcross[i])
-  //   if (foundIndex >= 0) {
-  //     across[0][foundIndex] = redacted
-  //   }
-  // }
-  // for (let i = 0; i < down[1]; i++) {
-  //   if (down[0][i] === redacted) continue
-  //
-  //   let foundIndex = down[0].indexOf(guessesDown[i])
-  //   if (foundIndex >= 0) {
-  //     down[0][foundIndex] = redacted
-  //   }
-  // }
-
   return across[0].concat(down[0]).includes(guesses[coordToString(coord)])
 }
 
@@ -89,20 +60,11 @@ const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, p
 }
 
 function App() {
-  // const cells = [
-  //   ["t", "h", "i", "s"],
-  //   ["h", "i", "#", "o"],
-  //   ["a", "p", "e", "#"],
-  //   ["t", "#", "h", "i"],
-  // ]
-  // const puzzle = makePuzzle()
-
   const puzzle = new Puzzle(JSON.parse(ipuz))
   const [showFull, setShowFull] = createSignal(true)
   const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
   const [guesses, setGuesses] = createSignal<Record<string, string>>({})
 
-  const toggleZoom = () => setShowFull(!showFull())
   const move = (dx: number, dy: number) => {
     setCoords(coords => ({
       x: Math.min(puzzle.ipuz.dimensions.width - 1, Math.max(0, coords.x + dx)),
@@ -115,16 +77,6 @@ function App() {
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.code === "Space") {
-      // crosswordle mode
-      // toggleZoom()
-      return
-    }
-
-    if (showFull()) {
-      // crosswordle mode
-      // return
-    }
     if (e.code === "ArrowUp") {
       move(0, -1)
     } else if (e.code === "ArrowDown") {
@@ -144,63 +96,24 @@ function App() {
   return (
     <>
       <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex justify-center items-center">
-        <div class="grid auto-cols-[6rem_auto_6rem] grid-rows-[6rem_auto]">
-          <div class={`col-start-2 justify-self-center self-start transition-opacity ${showFull() && "opacity-0"}`}>
-            <Word direction="across" word={puzzle.getWord("across")} />
-          </div>
-          <div class="row-start-2 col-start-2 w-2xl place-self-center aspect-square overflow-hidden p-8">
-            <PuzzleGrid coords={coords()} puzzle={puzzle} showFull={showFull()} guesses={guesses()} />
-          </div >
-          <div class={`col-start-3 row-start-2 justify-self-end self-center transition-opacity ${showFull() && "opacity-0"}`}>
-            <Word direction="down" word={puzzle.getWord("down")} />
-          </div >
-        </div>
+        <PuzzleGrid coords={coords()} puzzle={puzzle} showFull={showFull()} guesses={guesses()} />
       </div >
     </>
   )
 }
 
-function Word(props: { direction: "down" | "across", word: [string[], number] }) {
-  const colors = (i: number) => i === props.word[1] ? "bg-gray-300 text-white" : "text-gray-300"
-  return <div class={`text-3xl uppercase flex ${props.direction === "down" ? "flex-col" : "flex-row"}`}>
-    {
-      props.word[0].map((w, i) =>
-        <div class={`w-20 aspect-square border-2 border-gray-700 flex items-center justify-center ${colors(i)}`}>
-          <span>{w}</span>
-        </div>)
-    }
-  </div>
-}
-
 function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, guesses: Record<string, string> }) {
   let w = props.puzzle.ipuz.dimensions.width
-  let h = props.puzzle.ipuz.dimensions.height
-
-  let styles = () => ({
-    width: `calc(100% * ${w})`,
-    height: `calc(100% * ${h})`,
-    transform: props.showFull
-      ? `scale(${1 / Math.max(w, h)})`
-      : `translate(-${100 * props.coords.x / w}%, -${100 * props.coords.y / h}%)`,
-  })
 
   let reticleStyles = () => ({
     width: `calc(100% / ${w})`,
     transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
   })
 
-  let grid = {
-    4: "grid-cols-4 grid-rows-4",
-    5: "grid-cols-5 grid-rows-5",
-    13: "grid-cols-13 grid-rows-13",
-    // NOTE, fill in for known puzzle sizes
-  }[w]
-
   return <div
-    style={styles()}
-    class={`text-violet-800 grid ${grid} gap-8 transition-transform duration-300 origin-top-left`}
+    class={`w-md relative aspect-square grid grid-cols-5 grid-rows-5 gap-1`}
   >
-    <div style={reticleStyles()} class="aspect-square absolute rounded-3xl border-48 border-red-400 transition-transform"></div>
+    <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell y={y} x={x}
         value={props.puzzle.valueAt({ x, y })}
@@ -211,9 +124,9 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, showFull: boolean, g
 }
 
 function Cell(props: { y: number, x: number, value: string, status: string, guess: string }) {
-  return <div class={`border-gray-700 border-2 rounded-3xl flex items-center justify-center ${props.status}`}>
+  return <div class={`border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}>
     <Show when={props.value !== "#"}>
-      <span class="text-white uppercase text-[20rem]">{props.guess}</span>
+      <span class="text-white uppercase text-6xl">{props.guess}</span>
     </Show>
   </div>
 }
