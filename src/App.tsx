@@ -71,11 +71,13 @@ const [deadLetters, setDeadLetters] = createSignal<Set<string>>(new Set())
 function App() {
   const puzzle = new Puzzle(JSON.parse(ipuz))
 
-  const move = (dx: number, dy: number) => {
-    setCoords(coords => ({
-      x: Math.min(puzzle.ipuz.dimensions.width - 1, Math.max(0, coords.x + dx)),
-      y: Math.min(puzzle.ipuz.dimensions.height - 1, Math.max(0, coords.y + dy))
-    }))
+  const move = (dx: number, dy: number, force = false) => {
+    const newCoord = {
+      x: Math.min(puzzle.ipuz.dimensions.width - 1, Math.max(0, coords().x + dx)),
+      y: Math.min(puzzle.ipuz.dimensions.height - 1, Math.max(0, coords().y + dy))
+    }
+    if (!force && puzzle.valueAt(newCoord) === "#") return
+    setCoords(newCoord)
   }
   const guess = (guess: string) => {
     if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
@@ -106,6 +108,8 @@ function App() {
 
   onMount(() => document.addEventListener("keydown", handleKeyDown))
   onCleanup(() => document.removeEventListener("keydown", handleKeyDown))
+
+  while (puzzle.valueAt(coords()) === "#") move(1, 0, true)
 
   return (
     <>
@@ -170,7 +174,11 @@ function Cell(props: { x?: number, y?: number, value: string, status: string, gu
   const fontSize = props.fontSize || "text-6xl"
   return <div
     class={`aspect-square border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}
-    onClick={() => props.x !== undefined && props.y !== undefined && setCoords({ x: props.x, y: props.y })}
+    onClick={() => {
+      if (props.x === undefined || props.y === undefined) return
+      if (props.value === "#") return
+      setCoords({ x: props.x, y: props.y })
+    }}
   >
     <Show when={props.value !== "#"}>
       <span class={`text-white uppercase ${fontSize}`}>{props.guess}</span>
