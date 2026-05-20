@@ -1,4 +1,5 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
+import type { JSX } from 'solid-js'
 import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
 // 04-08
@@ -64,9 +65,89 @@ const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, p
     .includes(guess?.toUpperCase())
 }
 
+const puzzleIsComplete = (guesses: Record<string, string>, puzzle: Puzzle) => {
+  return puzzle.ipuz.solution
+    .flatMap((row, y) => row.map((cell, x) => cell === "#" || guesses[coordToString({ x, y })]?.toLowerCase() === cell.toLowerCase())).every(x => x)
+}
+
 const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
 const [guesses, setGuesses] = createSignal<Record<string, string>>({})
+const [numGuesses, setNumGuesses] = createSignal(0)
 const [deadLetters, setDeadLetters] = createSignal<Set<string>>(new Set())
+const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
+
+const shareData = {
+  title: "Crosswordle",
+  text: "A crossword Wordle mashup",
+  url: window.location.href
+}
+const share = async () => {
+  try {
+    await navigator.share(shareData)
+  } catch (_err) { }
+}
+
+function Modal(props: { close: () => void, children: JSX.Element }) {
+  return (
+    <div
+      class="fixed inset-0 bg-black/70 z-90 flex items-center justify-center p-4"
+      onclick={props.close}
+    >
+      <div
+        class="relative bg-white rounl text-neutral-900 text-sm leading-5 rounded-lg p-6 max-w-2xl w-sm max-h-[90vh] overflow-y-auto"
+        onclick={(e) => e.stopPropagation()}
+      >
+        <button class="absolute top-2 right-2 bg-neutral-800 text-white px-2 py-1 font-bold" onclick={props.close}>Close</button>
+        {props.children}
+      </div>
+    </div>
+  )
+}
+
+function Help() {
+  return (
+    <>
+
+      <h3 class="text-sm font-bold mb-3">HOW TO PLAY</h3>
+      <p class="mb-6">Fill in every cell with the right letter to complete the word grid. Click or use arrow keys to select, press any key to guess a letter, use backspace to delete.</p>
+      <p class="mb-6">Each vertical column and horizontal row makes a complete word (some may be more than one word with no spaces). Cell colors change based on letter placement:</p>
+
+      <div class="space-y-3 mb-6">
+        <div class="flex items-center gap-4">
+          <Cell guess="E" status={CORRECT} value="" size='sm' />
+          Letter is in the right spot
+        </div>
+        <div class="flex items-center gap-4">
+          <Cell guess="E" status={IN_ROW} value="" size='sm' />
+          Letter is in this column and/or row but not this spot
+        </div>
+        <div class="flex items-center gap-4">
+          <Cell guess="E" status={IN_PUZZLE} value="" size='sm' />
+          Letter is somewhere in the puzzle, but not this column or row
+        </div>
+        <div class="flex items-center gap-4">
+          <Cell guess="E" status={WRONG} value="" size='sm' />
+          Letter is not in the puzzle
+        </div>
+      </div>
+    </>
+  )
+}
+
+function Win() {
+  return (
+    <>
+      <h2 class="text-2xl text-center mb-1">SOLVED!</h2>
+      <p class="mb-6">You completed the puzzle in {numGuesses} turns.</p>
+      {/* <hr /> */}
+      {/* <div class="flex flex-row w-full justify-center mt-10 gap-4"> */}
+      {/*   <Show when={navigator.share}> */}
+      {/*     <button class="bg-neutral-800 text-white px-4 py-2" onclick={share}>Share</button> */}
+      {/*   </Show> */}
+      {/* </div> */}
+    </>
+  )
+}
 
 function App() {
   const puzzle = new Puzzle(JSON.parse(ipuz))
@@ -81,9 +162,13 @@ function App() {
   }
   const guess = (guess: string) => {
     if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
+
     setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
+    setNumGuesses(numGuesses() + 1)
 
     if (!letterIsInPuzzleStill(guess, guesses(), puzzle)) setDeadLetters(d => new Set([...d, guess]))
+
+    if (puzzleIsComplete(guesses(), puzzle)) setModalContent("WIN")
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -113,8 +198,14 @@ function App() {
 
   return (
     <>
+      <Show when={modalContent()}>
+        <Modal close={() => setModalContent(null)}>
+          {modalContent() === "HELP" ? <Help /> : <Win />}
+        </Modal>
+      </Show>
       <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center space-y-8">
         <Title />
+        <button onclick={() => setModalContent("HELP")}>How to play</button>
         <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
         <DeadLetters />
       </div >
@@ -124,18 +215,18 @@ function App() {
 
 function Title() {
   return <div class={`w-xs grid grid-cols-6 grid-rows-2 gap-1`} >
-    <Cell guess="C" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="R" status={IN_PUZZLE} value="" fontSize='text-4xl' />
-    <Cell guess="O" status={IN_ROW} value="" fontSize='text-4xl' />
-    <Cell guess="S" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="S" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="" status={EMPTY} value="" fontSize='text-4xl' />
-    <Cell guess="W" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="O" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="R" status={IN_PUZZLE} value="" fontSize='text-4xl' />
-    <Cell guess="D" status={IN_ROW} value="" fontSize='text-4xl' />
-    <Cell guess="L" status={CORRECT} value="" fontSize='text-4xl' />
-    <Cell guess="E" status={CORRECT} value="" fontSize='text-4xl' />
+    <Cell guess="C" status={CORRECT} value="" size='sm' />
+    <Cell guess="R" status={IN_PUZZLE} value="" size='sm' />
+    <Cell guess="O" status={IN_ROW} value="" size='sm' />
+    <Cell guess="S" status={CORRECT} value="" size='sm' />
+    <Cell guess="S" status={CORRECT} value="" size='sm' />
+    <Cell guess="" status={EMPTY} value="" size='sm' />
+    <Cell guess="W" status={CORRECT} value="" size='sm' />
+    <Cell guess="O" status={CORRECT} value="" size='sm' />
+    <Cell guess="R" status={IN_PUZZLE} value="" size='sm' />
+    <Cell guess="D" status={IN_ROW} value="" size='sm' />
+    <Cell guess="L" status={CORRECT} value="" size='sm' />
+    <Cell guess="E" status={CORRECT} value="" size='sm' />
   </div>
 }
 
@@ -170,10 +261,11 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
   </div>
 }
 
-function Cell(props: { x?: number, y?: number, value: string, status: string, guess: string, fontSize?: undefined | string }) {
-  const fontSize = props.fontSize || "text-6xl"
+function Cell(props: { x?: number, y?: number, value: string, status: string, guess: string, size?: undefined | "sm" }) {
+  const width = props.size == "sm" ? "w-12" : "auto"
+  const fontSize = props.size == "sm" ? "text-4xl" : "text-6xl"
   return <div
-    class={`aspect-square border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}
+    class={`shrink-0 aspect-square ${width} border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}
     onClick={() => {
       if (props.x === undefined || props.y === undefined) return
       if (props.value === "#") return
