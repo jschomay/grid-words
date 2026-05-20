@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
+    "simple-keyboard": "^3.8.144",
     "solid-js": "^1.9.10",
     "tailwindcss": "^4.1.17"
   },

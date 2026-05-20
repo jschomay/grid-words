@@ -2,6 +2,8 @@ import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import type { JSX } from 'solid-js'
 import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
+import Keyboard from 'simple-keyboard'
+import 'simple-keyboard/build/css/index.css'
 // 04-08
 import ipuz from '../public/puzzles/06.json?raw'
 
@@ -105,11 +107,12 @@ function Modal(props: { close: () => void, children: JSX.Element }) {
 }
 
 function Help() {
+  const hasTap = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
   return (
     <>
 
       <h3 class="text-sm font-bold mb-3">HOW TO PLAY</h3>
-      <p class="mb-6">Fill in every cell with the right letter to complete the word grid. Click or use arrow keys to select, press any key to guess a letter, use backspace to delete.</p>
+      <p class="mb-6">Fill in every cell with the right letter to complete the word grid. {hasTap() ? "Tap" : "Click or use arrow keys"} to select a cell, {hasTap() ? "use the keyboard below" : "press any key"} to guess a letter, use backspace to delete.</p>
       <p class="mb-6">Each vertical column and horizontal row makes a complete word (some may be more than one word with no spaces). Cell colors change based on letter placement:</p>
 
       <div class="space-y-3 mb-6">
@@ -191,8 +194,30 @@ function App() {
     }
   }
 
-  onMount(() => document.addEventListener("keydown", handleKeyDown))
+  const hasTap = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
+
+  let appRef!: HTMLDivElement
+  const [fullScreen, setFullScreen] = createSignal(false)
+
+  onMount(() => {
+    document.addEventListener("keydown", handleKeyDown)
+    if (hasTap()) {
+      new Keyboard({
+        onKeyPress: (button: string) => handleKeyDown(new KeyboardEvent("keydown", button === "{bksp}" ? { code: "Backspace", key: "Backspace" } : { key: button })),
+        layout: {
+          default: [
+            "q w e r t y u i o p",
+            "a s d f g h j k l",
+            "z x c v b n m {bksp}",
+          ],
+        },
+        display: { '{bksp}': '↤' }
+      })
+    }
+  })
   onCleanup(() => document.removeEventListener("keydown", handleKeyDown))
+
+  addEventListener("fullscreenchange", () => { if (document.fullscreenElement !== appRef) setFullScreen(false) })
 
   while (puzzle.valueAt(coords()) === "#") move(1, 0, true)
 
@@ -203,18 +228,30 @@ function App() {
           {modalContent() === "HELP" ? <Help /> : <Win />}
         </Modal>
       </Show>
-      <div class="bg-neutral-800 h-screen w-screen overflow-hidden flex flex-col justify-center items-center space-y-8">
+      <div ref={appRef} class="bg-neutral-800 h-dvh w-screen overflow-hidden flex flex-col items-center gap-4 p-4">
         <Title />
-        <button onclick={() => setModalContent("HELP")}>How to play</button>
-        <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
+        <div class="flex items-center gap-4">
+          <button onclick={() => setModalContent("HELP")}>How to play</button>
+          <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
+            <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
+          </Show>
+        </div>
+        <div class="flex-1 min-h-0 flex items-center justify-center w-full">
+          <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
+        </div>
         <DeadLetters />
+        <Show when={hasTap()}>
+          <div class="self-stretch shrink-0 -m-4 mt-auto">
+            <div class="simple-keyboard"></div>
+          </div>
+        </Show>
       </div >
     </>
   )
 }
 
 function Title() {
-  return <div class={`w-xs grid grid-cols-6 grid-rows-2 gap-1`} >
+  return <div class={`grid grid-cols-6 grid-rows-2 gap-0 sm:gap-1`} >
     <Cell guess="C" status={CORRECT} value="" size='sm' />
     <Cell guess="R" status={IN_PUZZLE} value="" size='sm' />
     <Cell guess="O" status={IN_ROW} value="" size='sm' />
@@ -231,7 +268,7 @@ function Title() {
 }
 
 function DeadLetters() {
-  return <div class={`w-md min-h-8 flex flex-wrap items-start space-y-2 space-x-2`} >
+  return <div class={`w-sm sm:w-md min-h-8 flex flex-wrap items-start space-y-2 space-x-2`} >
     {[...deadLetters()].map(char => {
       return <div class={`aspect-square w-8 rounded-lg ${WRONG} text-white flex items-center justify-center`}>
         <span class="text-white uppercase text-3xl"> {char}</span>
@@ -248,8 +285,8 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
     transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
   })
 
-  return <div class={`w-md relative aspect-square grid grid-cols-5 grid-rows-5 gap-1`} >
-    <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-8 border-red-400 transition-transform"></div>
+  return <div class={`w-full sm:w-md aspect-square relative grid grid-cols-5 grid-rows-5 gap-1`} >
+    <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-6 sm:border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell
         x={x}
@@ -262,8 +299,8 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
 }
 
 function Cell(props: { x?: number, y?: number, value: string, status: string, guess: string, size?: undefined | "sm" }) {
-  const width = props.size == "sm" ? "w-12" : "auto"
-  const fontSize = props.size == "sm" ? "text-4xl" : "text-6xl"
+  const width = props.size == "sm" ? "w-10 sm:w-12" : "auto"
+  const fontSize = props.size == "sm" ? "text-2xl sm:text-4xl" : "text-4xl sm:text-6xl"
   return <div
     class={`shrink-0 aspect-square ${width} border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}
     onClick={() => {
