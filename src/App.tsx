@@ -91,11 +91,11 @@ function Modal(props: { close: () => void, children: JSX.Element }) {
   return (
     <div
       class="fixed inset-0 bg-black/70 z-90 flex items-center justify-center p-4"
-      onclick={props.close}
+      onpointerup={props.close}
     >
       <div
         class="relative bg-white rounl text-neutral-900 text-sm leading-5 rounded-lg p-6 max-w-2xl w-sm max-h-[90vh] overflow-y-auto"
-        onclick={(e) => e.stopPropagation()}
+        onpointerup={(e) => e.stopPropagation()}
       >
         <button class="absolute top-2 right-2 bg-neutral-800 text-white px-2 py-1 font-bold" onclick={props.close}>Close</button>
         {props.children}
@@ -215,32 +215,30 @@ function App(props: { puzzle: Puzzle }) {
   while (puzzle.valueAt(coords()) === "#") move(1, 0, true)
 
   return (
-    <>
+    <div ref={appRef} class="bg-neutral-800 h-dvh w-screen overflow-hidden flex flex-col items-center gap-4 p-4">
       <Show when={modalContent()}>
         <Modal close={() => setModalContent(null)}>
           {modalContent() === "HELP" ? <Help /> : <Win />}
         </Modal>
       </Show>
-      <div ref={appRef} class="bg-neutral-800 h-dvh w-screen overflow-hidden flex flex-col items-center gap-4 p-4">
-        <Title />
-        <div class="flex items-center gap-4">
-          <span class="text-neutral-400 text-sm">{new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
-          <button onclick={() => setModalContent("HELP")}>How to play</button>
-          <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
-            <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
-          </Show>
-        </div>
-        <div class="flex-1 min-h-0 flex items-center justify-center w-full">
-          <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
-        </div>
-        <DeadLetters />
-        <Show when={hasTap()}>
-          <div class="self-stretch shrink-0 -m-4 mt-auto">
-            <div class="simple-keyboard"></div>
-          </div>
+      <Title />
+      <div class="flex items-center gap-4">
+        <span class="text-neutral-400 text-sm">{new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+        <button onclick={() => setModalContent("HELP")}>How to play</button>
+        <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
+          <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
         </Show>
-      </div >
-    </>
+      </div>
+      <div class="flex-1 min-h-0 flex items-center justify-center w-full">
+        <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
+      </div>
+      <DeadLetters />
+      <Show when={hasTap()}>
+        <div class="self-stretch shrink-0 -m-4 mt-auto">
+          <div class="simple-keyboard"></div>
+        </div>
+      </Show>
+    </div>
   )
 }
 
