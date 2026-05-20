@@ -4,8 +4,6 @@ import Puzzle from './puzzle'
 import { createStore, produce } from 'solid-js/store'
 import Keyboard from 'simple-keyboard'
 import 'simple-keyboard/build/css/index.css'
-// 04-08
-import ipuz from '../public/puzzles/06.json?raw'
 
 type Coord = { x: number, y: number }
 const EMPTY = "bg-gray-700"
@@ -141,19 +139,14 @@ function Win() {
   return (
     <>
       <h2 class="text-2xl text-center mb-1">SOLVED!</h2>
-      <p class="mb-6">You completed the puzzle in {numGuesses} turns.</p>
-      {/* <hr /> */}
-      {/* <div class="flex flex-row w-full justify-center mt-10 gap-4"> */}
-      {/*   <Show when={navigator.share}> */}
-      {/*     <button class="bg-neutral-800 text-white px-4 py-2" onclick={share}>Share</button> */}
-      {/*   </Show> */}
-      {/* </div> */}
+      <p class="mb-3">You completed the puzzle in {numGuesses} turns.</p>
+      <p>Come back tomorrow for a new puzzle!</p>
     </>
   )
 }
 
-function App() {
-  const puzzle = new Puzzle(JSON.parse(ipuz))
+function App(props: { puzzle: Puzzle }) {
+  const puzzle = props.puzzle
 
   const move = (dx: number, dy: number, force = false) => {
     const newCoord = {
@@ -231,6 +224,7 @@ function App() {
       <div ref={appRef} class="bg-neutral-800 h-dvh w-screen overflow-hidden flex flex-col items-center gap-4 p-4">
         <Title />
         <div class="flex items-center gap-4">
+          <span class="text-neutral-400 text-sm">{new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
           <button onclick={() => setModalContent("HELP")}>How to play</button>
           <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
             <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
