@@ -77,8 +77,8 @@ const [deadLetters, setDeadLetters] = createSignal<Set<string>>(new Set())
 const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
 
 const shareData = {
-  title: "Crosswordle",
-  text: "A crossword Wordle mashup",
+  title: "Grid Words",
+  text: "Wordle in 2D!",
   url: window.location.href
 }
 const share = async () => {
@@ -243,19 +243,17 @@ function App(props: { puzzle: Puzzle }) {
 }
 
 function Title() {
-  return <div class={`grid grid-cols-6 grid-rows-2 gap-0 sm:gap-1`} >
-    <Cell guess="C" status={CORRECT} value="" size='sm' />
+  return <div class={`grid grid-cols-5 grid-rows-2 gap-0 sm:gap-1`} >
+    <Cell guess="G" status={CORRECT} value="" size='sm' />
     <Cell guess="R" status={IN_PUZZLE} value="" size='sm' />
-    <Cell guess="O" status={IN_ROW} value="" size='sm' />
-    <Cell guess="S" status={CORRECT} value="" size='sm' />
-    <Cell guess="S" status={CORRECT} value="" size='sm' />
+    <Cell guess="I" status={IN_ROW} value="" size='sm' />
+    <Cell guess="D" status={CORRECT} value="" size='sm' />
     <Cell guess="" status={EMPTY} value="" size='sm' />
-    <Cell guess="W" status={CORRECT} value="" size='sm' />
-    <Cell guess="O" status={CORRECT} value="" size='sm' />
-    <Cell guess="R" status={IN_PUZZLE} value="" size='sm' />
-    <Cell guess="D" status={IN_ROW} value="" size='sm' />
-    <Cell guess="L" status={CORRECT} value="" size='sm' />
-    <Cell guess="E" status={CORRECT} value="" size='sm' />
+    <Cell guess="W" status={IN_PUZZLE} value="" size='sm' />
+    <Cell guess="O" status={IN_ROW} value="" size='sm' />
+    <Cell guess="R" status={CORRECT} value="" size='sm' />
+    <Cell guess="D" status={CORRECT} value="" size='sm' />
+    <Cell guess="S" status={CORRECT} value="" size='sm' />
   </div>
 }
 
