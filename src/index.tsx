@@ -7,12 +7,12 @@ import Puzzle from './puzzle'
 const loading = document.getElementById('loading')
 const root = document.getElementById('root')
 
-function getYearAgoPuzzleUrl() {
-  const d = new Date()
-  d.setFullYear(d.getFullYear() - 1)
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, "0")
-  const dd = String(d.getDate()).padStart(2, "0")
+const today = new Date()
+
+function getYearAgoPuzzleUrl(yearsAgo: number) {
+  const yyyy = today.getFullYear() - yearsAgo
+  const mm = String(today.getMonth() + 1).padStart(2, "0")
+  const dd = String(today.getDate()).padStart(2, "0")
   return `https://games-service-prod.site.aws.wapo.pub/crossword/levels/mini/${yyyy}/${mm}/${dd}`
 }
 
@@ -30,15 +30,22 @@ function wapoPuzzleToIpuz(data: any) {
   return { dimensions: { width: size, height: size }, solution }
 }
 
-fetch(getYearAgoPuzzleUrl())
-  .then(res => res.json())
-  .then(data => {
-    const ipuz = wapoPuzzleToIpuz(data)
-    const puzzle = new Puzzle(ipuz)
-    loading!.style.display = "none"
-    render(() => <App puzzle={puzzle} />, root!)
-  })
-  .catch(e => {
-    loading!.innerText = `Puzzle not found.`
-    console.error(e)
-  })
+function fetchPuzzle(yearsAgo: number) {
+  fetch(getYearAgoPuzzleUrl(yearsAgo))
+    .then(res => res.json())
+    .then(data => {
+      const ipuz = wapoPuzzleToIpuz(data)
+      const puzzle = new Puzzle(ipuz)
+      loading!.style.display = "none"
+      render(() => <App puzzle={puzzle} />, root!)
+    })
+    .catch(e => {
+      loading!.innerText = `Error fetching puzzle`
+      console.error(e)
+      if (yearsAgo > 0) {
+        fetchPuzzle(0)
+      }
+    })
+}
+
+fetchPuzzle(1)
