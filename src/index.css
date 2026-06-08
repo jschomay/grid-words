@@ -29,3 +29,26 @@ button {
   color: #111;
   text-transform: uppercase;
 }
+
+.hg-theme-default {
+  background: none !important;
+}
+
+/* The flex slot that holds the grid becomes a size container so the grid
+   can be sized to the smaller of its width/height (always square, always fits). */
+.grid-wrapper {
+  container-type: size;
+}
+
+.grid-square {
+  width: 100cqmin;
+  height: 100cqmin;
+}
+
+/* On larger screens, keep the original capped width and let height follow. */
+@media (width >= 40rem) {
+  .grid-square {
+    width: min(100cqmin, 28rem);
+    height: min(100cqmin, 28rem);
+  }
+}

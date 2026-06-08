@@ -232,7 +232,7 @@ function App(props: { puzzle: Puzzle }) {
           <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
         </Show>
       </div>
-      <div class="flex-1 min-h-0 flex items-center justify-center w-full">
+      <div class="grid-wrapper flex-1 min-h-0 flex items-center justify-center w-full">
         <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
       </div>
       <div class="self-stretch shrink-0 -m-4 mt-auto md:w-md md:self-center">
@@ -265,7 +265,7 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
     transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
   })
 
-  return <div class={`w-full max-w-full max-h-full sm:w-md aspect-square relative grid grid-cols-5 grid-rows-5 gap-1`} >
+  return <div class={`grid-square relative grid grid-cols-5 grid-rows-5 gap-1`} >
     <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-6 sm:border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell
