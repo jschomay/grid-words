@@ -190,25 +190,28 @@ function App(props: { puzzle: Puzzle }) {
   const hasTap = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0)
 
   let appRef!: HTMLDivElement
+  let keyboard: Keyboard | undefined
   const [fullScreen, setFullScreen] = createSignal(false)
 
   onMount(() => {
     document.addEventListener("keydown", handleKeyDown)
-    if (hasTap()) {
-      new Keyboard({
-        onKeyPress: (button: string) => handleKeyDown(new KeyboardEvent("keydown", button === "{bksp}" ? { code: "Backspace", key: "Backspace" } : { key: button })),
-        layout: {
-          default: [
-            "q w e r t y u i o p",
-            "a s d f g h j k l",
-            "z x c v b n m {bksp}",
-          ],
-        },
-        display: { '{bksp}': '↤' }
-      })
-    }
+    keyboard = new Keyboard({
+      onKeyPress: (button: string) => handleKeyDown(new KeyboardEvent("keydown", button === "{bksp}" ? { code: "Backspace", key: "Backspace" } : { key: button })),
+      layout: {
+        default: [
+          "q w e r t y u i o p",
+          "a s d f g h j k l",
+          "z x c v b n m {bksp}",
+        ],
+      },
+      display: { '{bksp}': '↤' },
+    })
   })
   onCleanup(() => document.removeEventListener("keydown", handleKeyDown))
+
+  createEffect(() => {
+    keyboard?.addButtonTheme([...deadLetters()].join(" "), "bg-gray-400!")
+  })
 
   addEventListener("fullscreenchange", () => { if (document.fullscreenElement !== appRef) setFullScreen(false) })
 
@@ -232,12 +235,9 @@ function App(props: { puzzle: Puzzle }) {
       <div class="flex-1 min-h-0 flex items-center justify-center w-full">
         <PuzzleGrid coords={coords()} puzzle={puzzle} guesses={guesses()} />
       </div>
-      <DeadLetters />
-      <Show when={hasTap()}>
-        <div class="self-stretch shrink-0 -m-4 mt-auto">
-          <div class="simple-keyboard"></div>
-        </div>
-      </Show>
+      <div class="self-stretch shrink-0 -m-4 mt-auto md:w-md md:self-center">
+        <div class="simple-keyboard"></div>
+      </div>
     </div>
   )
 }
@@ -257,16 +257,6 @@ function Title() {
   </div>
 }
 
-function DeadLetters() {
-  return <div class={`w-sm sm:w-md min-h-8 flex flex-wrap items-start space-y-2 space-x-2`} >
-    {[...deadLetters()].map(char => {
-      return <div class={`aspect-square w-8 rounded-lg ${WRONG} text-white flex items-center justify-center`}>
-        <span class="text-white uppercase text-3xl"> {char}</span>
-      </div>
-    })}
-  </div >
-}
-
 function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<string, string> }) {
   let w = props.puzzle.ipuz.dimensions.width
 
@@ -275,7 +265,7 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
     transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
   })
 
-  return <div class={`w-full sm:w-md aspect-square relative grid grid-cols-5 grid-rows-5 gap-1`} >
+  return <div class={`w-full max-w-full max-h-full sm:w-md aspect-square relative grid grid-cols-5 grid-rows-5 gap-1`} >
     <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-6 sm:border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell
