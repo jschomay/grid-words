@@ -1,7 +1,7 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import type { JSX } from 'solid-js'
 import Puzzle from './puzzle'
-import { createStore, produce } from 'solid-js/store'
+import { createStore } from 'solid-js/store'
 import Keyboard from 'simple-keyboard'
 import 'simple-keyboard/build/css/index.css'
 
@@ -72,20 +72,10 @@ const puzzleIsComplete = (guesses: Record<string, string>, puzzle: Puzzle) => {
 
 const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
 const [guesses, setGuesses] = createSignal<Record<string, string>>({})
-const [numGuesses, setNumGuesses] = createSignal(0)
+const [numGuesses, setNumGuesses] = createStore<number[][]>([[0]])
+const [solved, setSolved] = createSignal(false)
 const [deadLetters, setDeadLetters] = createSignal<Set<string>>(new Set())
 const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
-
-const shareData = {
-  title: "Grid Words",
-  text: "Wordle in 2D!",
-  url: window.location.href
-}
-const share = async () => {
-  try {
-    await navigator.share(shareData)
-  } catch (_err) { }
-}
 
 function Modal(props: { close: () => void, children: JSX.Element }) {
   return (
@@ -136,17 +126,51 @@ function Help() {
 }
 
 function Win() {
+  let value = n => {
+    if (n === 0) return "⬜"
+    if (n < 2) return "🟩"
+    if (n < 5) return "🟨"
+    return "⬛"
+  }
+  let turns = numGuesses.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)
+  let viz = numGuesses.map(row => row.map(value).join("")).join("\n")
+  let shareText = [
+    `Grid Words ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`,
+    `Solved in ${turns} turns!`,
+    viz
+  ].join("\n")
+
+  const [shareLabel, setShareLabel] = createSignal("Share")
+  const share = async () => {
+    const shareData = { title: "Grid Words", text: shareText + "\n", url: window.location.href }
+    if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
+      await navigator.share(shareData)
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText}\n${window.location.href}`)
+        setShareLabel("Copied!")
+        setTimeout(() => setShareLabel("Share"), 2000)
+      } catch (_err) {
+        setShareLabel("Copy failed")
+      }
+    }
+  }
+
   return (
-    <>
-      <h2 class="text-2xl text-center mb-1">SOLVED!</h2>
-      <p class="mb-3">You completed the puzzle in {numGuesses} turns.</p>
-      <p>Come back tomorrow for a new puzzle!</p>
-    </>
+    <div class="flex flex-col items-center">
+      <h2 class="text-2xl text-center mb-1">PUZZLE COMPLETE!</h2>
+      <p class="mb-3">Solved in {turns} turns!</p>
+      <pre>{viz}</pre>
+      <span class="mt-2"></span>
+      <button onclick={share}>{shareLabel()}</button>
+      <p class="mt-3">Come back tomorrow for a new puzzle!</p>
+    </div>
   )
 }
 
 function App(props: { puzzle: Puzzle }) {
   const puzzle = props.puzzle
+  setNumGuesses(puzzle.ipuz.solution.map(row => row.map(() => 0)))
 
   const move = (dx: number, dy: number, force = false) => {
     const newCoord = {
@@ -160,11 +184,14 @@ function App(props: { puzzle: Puzzle }) {
     if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
 
     setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
-    setNumGuesses(numGuesses() + 1)
+    setNumGuesses(coords().y, coords().x, n => n + 1)
 
     if (!letterIsInPuzzleStill(guess, guesses(), puzzle)) setDeadLetters(d => new Set([...d, guess]))
 
-    if (puzzleIsComplete(guesses(), puzzle)) setModalContent("WIN")
+    if (puzzleIsComplete(guesses(), puzzle)) {
+      setModalContent("WIN")
+      setSolved(true)
+    }
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -227,6 +254,7 @@ function App(props: { puzzle: Puzzle }) {
       <Title />
       <div class="flex items-center gap-4">
         <span class="text-neutral-400 text-sm">{new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
+        <Show when={solved()}> <button onclick={() => setModalContent("WIN")}>Show score</button> </Show>
         <button onclick={() => setModalContent("HELP")}>How to play</button>
         <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
           <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
