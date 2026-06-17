@@ -74,7 +74,7 @@ const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
 const [guesses, setGuesses] = createSignal<Record<string, string>>({})
 const [numGuesses, setNumGuesses] = createStore<number[][]>([[0]])
 const [solved, setSolved] = createSignal(false)
-const [deadLetters, setDeadLetters] = createSignal<Set<string>>(new Set())
+const [letterState, setletterState] = createSignal<Map<string, "LIVE" | "DEAD">>(new Map())
 const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
 
 function Modal(props: { close: () => void, children: JSX.Element }) {
@@ -121,6 +121,10 @@ function Help() {
           Letter is not in the puzzle
         </div>
       </div>
+
+      <p class="mb-6">
+        Guessed letters in the keyboard also tell you if more are still in the puzzle (yellow) or not (grey).
+      </p>
     </>
   )
 }
@@ -133,10 +137,11 @@ function Win() {
     return "⬛"
   }
   let turns = numGuesses.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)
+  let usedLetters = Object.keys(letterState()).length
   let viz = numGuesses.map(row => row.map(value).join("")).join("\n")
   let shareText = [
     `Grid Words ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`,
-    `Solved in ${turns} turns!`,
+    `Solved in ${turns} turns, using ${usedLetters} letters.`,
     viz
   ].join("\n")
 
@@ -159,7 +164,7 @@ function Win() {
   return (
     <div class="flex flex-col items-center">
       <h2 class="text-2xl text-center mb-1">PUZZLE COMPLETE!</h2>
-      <p class="mb-3">Solved in {turns} turns!</p>
+      <p class="mb-3">Solved in {turns} turns, using {usedLetters} letters.</p>
       <pre>{viz}</pre>
       <span class="mt-2"></span>
       <button onclick={share}>{shareLabel()}</button>
@@ -186,7 +191,7 @@ function App(props: { puzzle: Puzzle }) {
     setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
     setNumGuesses(coords().y, coords().x, n => n + 1)
 
-    if (!letterIsInPuzzleStill(guess, guesses(), puzzle)) setDeadLetters(d => new Set([...d, guess]))
+    setletterState(s => ({ ...s, [guess]: letterIsInPuzzleStill(guess, guesses(), puzzle) ? "LIVE" : "DEAD" }))
 
     if (puzzleIsComplete(guesses(), puzzle)) {
       setModalContent("WIN")
@@ -237,7 +242,11 @@ function App(props: { puzzle: Puzzle }) {
   onCleanup(() => document.removeEventListener("keydown", handleKeyDown))
 
   createEffect(() => {
-    keyboard?.addButtonTheme([...deadLetters()].join(" "), "bg-gray-400!")
+    let deadLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "DEAD").map(([k, v]) => k).join(" ")
+    let liveLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "LIVE").map(([k, v]) => k).join(" ")
+    keyboard?.addButtonTheme(liveLetters, "bg-yellow-400!")
+    keyboard?.removeButtonTheme(deadLetters, "bg-yellow-400!")
+    keyboard?.addButtonTheme(deadLetters, "bg-gray-400!")
   })
 
   addEventListener("fullscreenchange", () => { if (document.fullscreenElement !== appRef) setFullScreen(false) })
