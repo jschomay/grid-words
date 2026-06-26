@@ -16,21 +16,23 @@ function coordToString({ x, y }: Coord): string {
   return `${x},${y}`
 }
 
-const status = (guesses: Record<string, string>, coord: Coord, puzzle: Puzzle) => {
-  const guess = guesses[coordToString(coord)]
-  if (puzzle.valueAt(coord) === "#") {
-    return EMPTY
-  } else if (guess && guess.toLowerCase() === puzzle.valueAt(coord).toLowerCase()) {
-    return CORRECT
-  } else if (letterIsInRowOrColStill(guesses, coord, puzzle)) {
-    return IN_ROW
-  } else if (letterIsInPuzzleStill(guess, guesses, puzzle)) {
-    return IN_PUZZLE
-  } else if (guess) {
-    return WRONG
-  } else {
-    return "bg-white"
-  }
+
+const status = (guesses: Record<string, string[]>, coord: Coord, puzzle: Puzzle): string[] => {
+  return guesses[coordToString(coord)]?.map(guess => {
+    if (puzzle.valueAt(coord) === "#") {
+      return EMPTY
+    } else if (guess.toLowerCase() === puzzle.valueAt(coord).toLowerCase()) {
+      return CORRECT
+    } else if (letterIsInRowOrColStill(guess, guesses, coord, puzzle)) {
+      return IN_ROW
+    } else if (letterIsInPuzzleStill(guess, guesses, puzzle)) {
+      return IN_PUZZLE
+    } else if (guess) {
+      return WRONG
+    } else {
+      return "bg-white"
+    }
+  })
 }
 
 const wordToPuzzleCoords = (coord: Coord, word: string[], wordIndex: number, direction: "down" | "across"): string[] => {
@@ -41,7 +43,7 @@ const wordToPuzzleCoords = (coord: Coord, word: string[], wordIndex: number, dir
   }
 }
 
-const letterIsInRowOrColStill = (guesses: Record<string, string>, coord: Coord, puzzle: Puzzle): boolean => {
+const letterIsInRowOrColStill = (guess: string, guesses: Record<string, string[]>, coord: Coord, puzzle: Puzzle): boolean => {
   let [across, down] = puzzle.wordsAt(coord)
   across[0] = across[0].map(c => c.toLowerCase())
   down[0] = down[0].map(c => c.toLowerCase())
@@ -53,25 +55,33 @@ const letterIsInRowOrColStill = (guesses: Record<string, string>, coord: Coord, 
   const redacted = "$"
 
   // remove correct guess from words
-  across[0] = across[0].map((v, i) => v === guessesAcross[i] ? redacted : v)
-  down[0] = down[0].map((v, i) => v === guessesDown[i] ? redacted : v)
+  across[0] = across[0].map((v, i) => guessesAcross[i]?.includes(v) ? redacted : v)
+  down[0] = down[0].map((v, i) => guessesDown[i]?.includes(v) ? redacted : v)
 
-  return across[0].concat(down[0]).includes(guesses[coordToString(coord)])
+  return across[0].concat(down[0]).includes(guess)
 }
 
-const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string>, puzzle: Puzzle) => {
+const letterIsInPuzzleStill = (guess: string, guesses: Record<string, string[]>, puzzle: Puzzle) => {
   return puzzle.ipuz.solution
-    .flatMap((row, y) => row.filter((cell, x) => guesses[coordToString({ x, y })]?.toLowerCase() !== cell.toLowerCase()))
+    .flatMap((row, y) => row.filter((cell, x) => {
+      let cellGuessStack = guesses[coordToString({ x, y })]
+      return !cellGuessStack?.includes(cell.toLowerCase())
+    }))
     .includes(guess?.toUpperCase())
 }
 
-const puzzleIsComplete = (guesses: Record<string, string>, puzzle: Puzzle) => {
+const puzzleIsComplete = (guesses: Record<string, string[]>, puzzle: Puzzle) => {
   return puzzle.ipuz.solution
-    .flatMap((row, y) => row.map((cell, x) => cell === "#" || guesses[coordToString({ x, y })]?.toLowerCase() === cell.toLowerCase())).every(x => x)
+    .flatMap((row, y) => row.map((cell, x) => {
+      let cellGuessStack = guesses[coordToString({ x, y })]
+      return cell === "#" || cellGuessStack?.[cellGuessStack.length - 1]?.toLowerCase() === cell.toLowerCase()
+    }))
+    .every(x => x)
 }
 
 const [coords, setCoords] = createSignal<Coord>({ x: 0, y: 0 })
-const [guesses, setGuesses] = createSignal<Record<string, string>>({})
+const [stackOffset, setStackOffset] = createSignal(0)
+const [guesses, setGuesses] = createSignal<Record<string, string[]>>({})
 const [numGuesses, setNumGuesses] = createStore<number[][]>([[0]])
 const [solved, setSolved] = createSignal(false)
 const [letterState, setletterState] = createSignal<Map<string, "LIVE" | "DEAD">>(new Map())
@@ -113,25 +123,35 @@ function Help() {
       <p class="mb-6"> Cell colors change based on letter placement:</p>
       <div class="space-y-3 mb-6">
         <div class="flex items-center gap-4">
-          <Cell guess="E" status={CORRECT} value="" size='sm' />
+          <Cell guess={["E"]} status={[CORRECT]} value="" size='sm' />
           Letter is in the right spot.
         </div>
         <div class="flex items-center gap-4">
-          <Cell guess="E" status={IN_ROW} value="" size='sm' />
+          <Cell guess={["E"]} status={[IN_ROW]} value="" size='sm' />
           Letter is in this column and/or row but not this spot.
         </div>
         <div class="flex items-center gap-4">
-          <Cell guess="E" status={IN_PUZZLE} value="" size='sm' />
+          <Cell guess={["E"]} status={[IN_PUZZLE]} value="" size='sm' />
           Letter is somewhere in the puzzle, but not this column or row.
         </div>
         <div class="flex items-center gap-4">
-          <Cell guess="E" status={WRONG} value="" size='sm' />
+          <Cell guess={["E"]} status={[WRONG]} value="" size='sm' />
           Letter is not in the puzzle.
         </div>
       </div>
 
+      <h3 class="text-sm font-bold mb-3">KEYBOARD</h3>
       <p class="mb-6">
         Guessed letters in the keyboard turn yellow or gray depending on if that letter is stil somewhere in the puzzle or not.
+      </p>
+
+      <h3 class="text-sm font-bold mb-3">STACKS</h3>
+      <div class="flex items-center gap-4 mb-3">
+        <Cell guess={["A", "T", "E"]} status={[WRONG, IN_ROW, CORRECT]} value="" size='sm' />
+        Every guess you make in a cell stacks on top of your previous ones.
+      </div>
+      <p class="mb-6">
+        Your latest guess sits on top. {hasTap() ? "Tap" : "Click"} the selected cell again to rotate the stack and see letters that got covered up.
       </p>
     </>
   )
@@ -192,11 +212,17 @@ function App(props: { puzzle: Puzzle }) {
     }
     if (!force && puzzle.valueAt(newCoord) === "#") return
     setCoords(newCoord)
+    setStackOffset(0)
   }
   const guess = (guess: string) => {
-    if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
+    let cellGuessStack = guesses()[coordToString(coords())] || []
+    // no-op if this letter has already been guessed in this cell
+    if (cellGuessStack.includes(guess)) return
+    // NOTE might be strange when typing a letter burried in the stack and nothing will happen
+    if (cellGuessStack.includes(puzzle.valueAt(coords()).toLowerCase())) return
 
-    setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
+    setGuesses((g) => ({ ...g, [coordToString(coords())]: [...cellGuessStack, guess] }))
+    setStackOffset(0)
     setNumGuesses(coords().y, coords().x, n => n + 1)
 
     if (puzzle.valueAt(coords()).toLowerCase() === guess) {
@@ -224,12 +250,13 @@ function App(props: { puzzle: Puzzle }) {
       move(1, 0)
     } else if (e.key >= "a" && e.key <= "z") {
       guess(e.key)
-    } else if (e.key === "Backspace") {
-      if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
-      setGuesses((g) => {
-        delete g[coordToString(coords())]
-        return ({ ...g })
-      })
+      // NOTE remove backspace bc what does that mean in a stack?
+      // } else if (e.key === "Backspace") {
+      //   if (puzzle.valueAt(coords()).toLowerCase() === guesses()[coordToString(coords())]) return
+      //   setGuesses((g) => {
+      //     delete g[coordToString(coords())]
+      //     return ({ ...g })
+      //   })
     }
   }
 
@@ -247,7 +274,9 @@ function App(props: { puzzle: Puzzle }) {
         default: [
           "q w e r t y u i o p",
           "a s d f g h j k l",
-          "z x c v b n m {bksp}",
+          // NOTE backspace removed with stack of guesses
+          // "z x c v b n m {bksp}",
+          "z x c v b n m",
         ],
       },
       display: { '{bksp}': '↤' },
@@ -295,29 +324,32 @@ function App(props: { puzzle: Puzzle }) {
 
 function Title() {
   return <div class={`grid grid-cols-5 grid-rows-2 gap-0 sm:gap-1`} >
-    <Cell guess="G" status={CORRECT} value="" size='sm' />
-    <Cell guess="R" status={IN_PUZZLE} value="" size='sm' />
-    <Cell guess="I" status={IN_ROW} value="" size='sm' />
-    <Cell guess="D" status={CORRECT} value="" size='sm' />
-    <Cell guess="" status={EMPTY} value="" size='sm' />
-    <Cell guess="W" status={IN_PUZZLE} value="" size='sm' />
-    <Cell guess="O" status={IN_ROW} value="" size='sm' />
-    <Cell guess="R" status={CORRECT} value="" size='sm' />
-    <Cell guess="D" status={CORRECT} value="" size='sm' />
-    <Cell guess="S" status={CORRECT} value="" size='sm' />
+    <Cell guess={["G"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["R"]} status={[IN_PUZZLE]} value="" size='sm' />
+    <Cell guess={["I"]} status={[IN_ROW]} value="" size='sm' />
+    <Cell guess={["D"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={[""]} status={[EMPTY]} value="" size='sm' />
+    <Cell guess={["W"]} status={[IN_PUZZLE]} value="" size='sm' />
+    <Cell guess={["O"]} status={[IN_ROW]} value="" size='sm' />
+    <Cell guess={["R"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["D"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["S"]} status={[CORRECT]} value="" size='sm' />
   </div>
 }
 
-function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<string, string> }) {
+function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<string, string[]> }) {
   let w = props.puzzle.ipuz.dimensions.width
 
-  let reticleStyles = () => ({
-    width: `calc(100% / ${w})`,
-    transform: `translate(${100 * props.coords.x}%, ${100 * props.coords.y}%)`
-  })
+
+  let reticleStyles = () => {
+    let numGuesses = props.guesses[coordToString(props.coords)]?.length || 0
+    return {
+      width: `calc(100% / ${w})`,
+      transform: `translate(calc(${100 * props.coords.x}% + -3*${numGuesses}px), calc(${100 * props.coords.y}% + -3*${numGuesses}px)`
+    }
+  }
 
   return <div class={`grid-square relative grid grid-cols-5 grid-rows-5 gap-1`} >
-    <div style={reticleStyles()} class="aspect-square absolute rounded-xl border-6 sm:border-8 border-red-400 transition-transform"></div>
     {props.puzzle.ipuz.solution.map((row, y) => row.map((cell, x) => {
       return <Cell
         x={x}
@@ -326,24 +358,47 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
         status={status(props.guesses, { x, y }, props.puzzle)}
         guess={props.guesses[coordToString({ x, y })]} />
     }))}
+    <div style={reticleStyles()} class="pointer-events-none aspect-square absolute rounded-xl border-6 sm:border-8 border-red-400 transition-transform"></div>
   </div>
 }
 
-function Cell(props: { x?: number, y?: number, value: string, status: string, guess: string, size?: undefined | "sm" }) {
+function Cell(props: { x?: number, y?: number, value: string, status: string[], guess: string[], size?: undefined | "sm" }) {
   const width = props.size == "sm" ? "w-10 sm:w-12" : "auto"
   const fontSize = props.size == "sm" ? "text-2xl sm:text-4xl" : "text-4xl sm:text-6xl"
-  return <div
-    class={`shrink-0 aspect-square ${width} border-gray-700 border-2 rounded-xl flex items-center justify-center ${props.status}`}
-    onClick={() => {
-      if (props.x === undefined || props.y === undefined) return
-      if (props.value === "#") return
-      setCoords({ x: props.x, y: props.y })
-    }}
-  >
-    <Show when={props.value !== "#"}>
-      <span class={`text-white uppercase ${fontSize}`}>{props.guess}</span>
-    </Show>
-  </div>
+  const isSelected = () => coords().x === props.x && coords().y === props.y
+  // rotate this cell's stack when it's selected and the user has clicked through it
+  const offset = () => (isSelected() && props.guess?.length ? stackOffset() % props.guess.length : 0)
+  return (
+    <div
+      onClick={() => {
+        if (props.x === undefined || props.y === undefined) return
+        if (props.value === "#") return
+        if (isSelected()) {
+          // clicking the already-selected cell rotates its guess stack
+          setStackOffset((o) => o + 1)
+        } else {
+          setCoords({ x: props.x, y: props.y })
+          setStackOffset(0)
+        }
+      }}
+      class={`relative shrink-0 aspect-square ${width} rounded-xl ${props.value === "#" ? EMPTY : "bg-white"}`}
+    >
+      {props.guess?.map((_g, i) => {
+        // i is the visual layer; pull the guess that should sit there after rotating
+        const idx = (i + offset()) % props.guess.length
+        return (
+          <div
+            class={`absolute w-full h-full top-0 left-0 border-gray-700 border-1 rounded-xl flex items-center justify-center ${props.status[idx]}`}
+            style={{ transform: `translate(${i * -3}px, ${i * -3}px)` }}
+          >
+            <Show when={props.value !== "#"}>
+              <span class={`text-white uppercase ${fontSize}`}>{props.guess[idx]}</span>
+            </Show>
+          </div>
+        )
+      })}
+    </div>)
+
 }
 
 export default App
