@@ -385,7 +385,7 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
     >
       {props.guess?.map((_g, i) => {
         // i is the visual layer; pull the guess that should sit there after rotating
-        const idx = (i + offset()) % props.guess.length
+        const idx = (i - offset() + props.guess.length) % props.guess.length
         return (
           <div
             class={`absolute w-full h-full top-0 left-0 border-gray-700 border-1 rounded-xl flex items-center justify-center ${props.status[idx]}`}
