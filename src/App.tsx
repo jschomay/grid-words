@@ -101,30 +101,37 @@ function Help() {
     <>
 
       <h3 class="text-sm font-bold mb-3">HOW TO PLAY</h3>
-      <p class="mb-6">Fill in every cell with the right letter to complete the word grid. {hasTap() ? "Tap" : "Click or use arrow keys"} to select a cell, {hasTap() ? "use the keyboard below" : "press any key"} to guess a letter, use backspace to delete.</p>
-      <p class="mb-6">Each vertical column and horizontal row makes a complete word (some may be more than one word with no spaces). Cell colors change based on letter placement:</p>
+      <p class="mb-6 italic">Sudoku meets Wordle meets crosswords.</p>
+      <h3 class="text-sm font-bold mb-3">Goal</h3>
+      <p class="mb-6">Fill in every cell with the right letter to complete the word grid.</p>
+      <p class="mb-6">Each vertical column and horizontal row makes a complete word (some may be more than one word with no spaces or an abbreviation).</p>
 
+      <h3 class="text-sm font-bold mb-3">Controls</h3>
+      <p class="mb-6">{hasTap() ? "Tap any cell" : "Click on any cell or use arrow keys"} to select it.  Use the visual keyboard {!hasTap() ? "or press any key" : ""} to fill the cell with that letter.</p>
+
+      <h3 class="text-sm font-bold mb-3">Clues</h3>
+      <p class="mb-6"> Cell colors change based on letter placement:</p>
       <div class="space-y-3 mb-6">
         <div class="flex items-center gap-4">
           <Cell guess="E" status={CORRECT} value="" size='sm' />
-          Letter is in the right spot
+          Letter is in the right spot.
         </div>
         <div class="flex items-center gap-4">
           <Cell guess="E" status={IN_ROW} value="" size='sm' />
-          Letter is in this column and/or row but not this spot
+          Letter is in this column and/or row but not this spot.
         </div>
         <div class="flex items-center gap-4">
           <Cell guess="E" status={IN_PUZZLE} value="" size='sm' />
-          Letter is somewhere in the puzzle, but not this column or row
+          Letter is somewhere in the puzzle, but not this column or row.
         </div>
         <div class="flex items-center gap-4">
           <Cell guess="E" status={WRONG} value="" size='sm' />
-          Letter is not in the puzzle
+          Letter is not in the puzzle.
         </div>
       </div>
 
       <p class="mb-6">
-        Guessed letters in the keyboard also tell you if more are still in the puzzle (yellow) or not (grey).
+        Guessed letters in the keyboard turn yellow or gray depending on if that letter is stil somewhere in the puzzle or not.
       </p>
     </>
   )
