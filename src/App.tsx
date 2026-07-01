@@ -76,6 +76,7 @@ const [numGuesses, setNumGuesses] = createStore<number[][]>([[0]])
 const [solved, setSolved] = createSignal(false)
 const [letterState, setletterState] = createSignal<Map<string, "LIVE" | "DEAD">>(new Map())
 const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
+const [score, setScore] = createSignal<number>(0)
 
 function Modal(props: { close: () => void, children: JSX.Element }) {
   return (
@@ -132,16 +133,16 @@ function Help() {
 function Win() {
   let value = n => {
     if (n === 0) return "⬜"
-    if (n < 2) return "🟩"
-    if (n < 5) return "🟨"
-    return "⬛"
+    if (n < 2) return "🟩" // first try
+    if (n < 4) return "🟨" // 2-3
+    return "⬛" // 4+
   }
   let turns = numGuesses.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)
   let usedLetters = Object.keys(letterState()).length
   let viz = numGuesses.map(row => row.map(value).join("")).join("\n")
   let shareText = [
     `Grid Words ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`,
-    `Solved in ${turns} turns, using ${usedLetters} letters.`,
+    `Score: ${score()}. Solved in ${turns} turns, using ${usedLetters} letters.`,
     viz
   ].join("\n")
 
@@ -164,7 +165,7 @@ function Win() {
   return (
     <div class="flex flex-col items-center">
       <h2 class="text-2xl text-center mb-1">PUZZLE COMPLETE!</h2>
-      <p class="mb-3">Solved in {turns} turns, using {usedLetters} letters.</p>
+      <p class="mb-3">Score: {score()}. Solved in {turns} turns, using {usedLetters} letters.</p>
       <pre>{viz}</pre>
       <span class="mt-2"></span>
       <button onclick={share}>{shareLabel()}</button>
@@ -190,6 +191,12 @@ function App(props: { puzzle: Puzzle }) {
 
     setGuesses((g) => ({ ...g, [coordToString(coords())]: guess }))
     setNumGuesses(coords().y, coords().x, n => n + 1)
+
+    if (puzzle.valueAt(coords()).toLowerCase() === guess) {
+      let tries = numGuesses[coords().y][coords().x]
+      let points = [100, 50, 25, 10][tries - 1] || 0
+      setScore(s => s += points)
+    }
 
     setletterState(s => ({ ...s, [guess]: letterIsInPuzzleStill(guess, guesses(), puzzle) ? "LIVE" : "DEAD" }))
 
@@ -263,7 +270,7 @@ function App(props: { puzzle: Puzzle }) {
       <Title />
       <div class="flex items-center gap-4">
         <span class="text-neutral-400 text-sm">{new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
-        <Show when={solved()}> <button onclick={() => setModalContent("WIN")}>Show score</button> </Show>
+        <Show when={solved()} fallback={<span>Score: {score()}</span>}> <button onclick={() => setModalContent("WIN")}>Show score</button> </Show>
         <button onclick={() => setModalContent("HELP")}>How to play</button>
         <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
           <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
