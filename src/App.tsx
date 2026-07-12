@@ -366,34 +366,53 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
   const width = props.size == "sm" ? "w-10 sm:w-12" : "auto"
   const fontSize = props.size == "sm" ? "text-2xl sm:text-4xl" : "text-4xl sm:text-6xl"
   const isSelected = () => coords().x === props.x && coords().y === props.y
-  // rotate this cell's stack when it's selected and the user has clicked through it
   const offset = () => (isSelected() && props.guess?.length ? stackOffset() % props.guess.length : 0)
+  const [animPhase, setAnimPhase] = createSignal<"idle" | "top-out" | "bottom-in">("idle")
+
   return (
     <div
       onClick={() => {
         if (props.x === undefined || props.y === undefined) return
         if (props.value === "#") return
         if (isSelected()) {
-          // clicking the already-selected cell rotates its guess stack
-          setStackOffset((o) => o + 1)
+          setAnimPhase("top-out")
         } else {
           setCoords({ x: props.x, y: props.y })
           setStackOffset(0)
         }
       }}
-      class={`relative shrink-0 aspect-square ${width} rounded-xl ${props.value === "#" ? EMPTY : "bg-white"}`}
+      class={`select-none relative shrink-0 aspect-square ${width} rounded-xl ${props.value === "#" ? EMPTY : "bg-white"}`}
     >
       {props.guess?.map((_g, i) => {
-        // i is the visual layer; pull the guess that should sit there after rotating
         const idx = (i - offset() + props.guess.length) % props.guess.length
+        const isTop = i === props.guess?.length - 1
+        const isBottom = i === 0
         return (
           <div
-            class={`absolute w-full h-full top-0 left-0 border-gray-700 border-1 rounded-xl flex items-center justify-center ${props.status[idx]}`}
+            class="absolute w-full h-full"
             style={{ transform: `translate(${i * -3}px, ${i * -3}px)` }}
           >
-            <Show when={props.value !== "#"}>
-              <span class={`text-white uppercase ${fontSize}`}>{props.guess[idx]}</span>
-            </Show>
+            <div
+              class={`w-full h-full border-gray-700 border rounded-xl flex items-center justify-center ${props.status[idx]}`}
+              style={{
+                animation:
+                  isTop && animPhase() === "top-out" ? "slide-out-left 200ms ease-out forwards" :
+                    isBottom && animPhase() === "bottom-in" ? "slide-in-right 200ms ease-out forwards" :
+                      undefined,
+              }}
+              onAnimationEnd={() => {
+                if (isTop && animPhase() === "top-out") {
+                  setAnimPhase("bottom-in")
+                  setStackOffset((o) => o + 1)
+                } else if (isBottom && animPhase() === "bottom-in") {
+                  setAnimPhase("idle")
+                }
+              }}
+            >
+              <Show when={props.value !== "#"}>
+                <span class={`text-white uppercase ${fontSize}`}>{props.guess[idx]}</span>
+              </Show>
+            </div>
           </div>
         )
       })}

@@ -45,6 +45,16 @@ button {
   height: 100cqmin;
 }
 
+@keyframes slide-out-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
 /* On larger screens, keep the original capped width and let height follow. */
 @media (width >= 40rem) {
   .grid-square {
