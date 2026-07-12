@@ -324,16 +324,16 @@ function App(props: { puzzle: Puzzle }) {
 
 function Title() {
   return <div class={`grid grid-cols-5 grid-rows-2 gap-0 sm:gap-1`} >
-    <Cell guess={["G"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["X", "I", "G"]} status={[WRONG, IN_ROW, CORRECT]} value="" size='sm' />
     <Cell guess={["R"]} status={[IN_PUZZLE]} value="" size='sm' />
-    <Cell guess={["I"]} status={[IN_ROW]} value="" size='sm' />
-    <Cell guess={["D"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["W", "I"]} status={[IN_PUZZLE, IN_ROW]} value="" size='sm' />
+    <Cell guess={["O", "D"]} status={[IN_ROW, CORRECT]} value="" size='sm' />
     <Cell guess={[""]} status={[EMPTY]} value="" size='sm' />
-    <Cell guess={["W"]} status={[IN_PUZZLE]} value="" size='sm' />
+    <Cell guess={["D", "W"]} status={[WRONG, IN_PUZZLE]} value="" size='sm' />
     <Cell guess={["O"]} status={[IN_ROW]} value="" size='sm' />
-    <Cell guess={["R"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["X", "X", "R"]} status={[IN_PUZZLE, WRONG, CORRECT]} value="" size='sm' />
     <Cell guess={["D"]} status={[CORRECT]} value="" size='sm' />
-    <Cell guess={["S"]} status={[CORRECT]} value="" size='sm' />
+    <Cell guess={["X", "X", "S"]} status={[IN_ROW, WRONG, CORRECT]} value="" size='sm' />
   </div>
 }
 
