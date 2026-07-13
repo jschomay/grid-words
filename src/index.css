@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  --color-correct: #1a8da0;
+  --color-in-row: #f29a0b;
+  --color-in-puzzle: #d65959;
+  --color-reticle: #e9c46a;
+  --color-wrong: #979797;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -22,7 +30,7 @@ body {
 }
 
 button {
-  @apply bg-indigo-400 hover:bg-yellow-400 hover:cursor-pointer rounded-lg text-white px-2 py-1;
+  @apply bg-in-puzzle hover:bg-correct hover:cursor-pointer rounded-lg text-white px-2 py-1;
 }
 
 .hg-button {

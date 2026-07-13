@@ -7,10 +7,10 @@ import 'simple-keyboard/build/css/index.css'
 
 type Coord = { x: number, y: number }
 const EMPTY = "bg-gray-700"
-const CORRECT = "bg-green-400"
-const IN_ROW = "bg-yellow-400"
-const IN_PUZZLE = "bg-indigo-400"
-const WRONG = "bg-gray-400"
+const CORRECT = "bg-correct"
+const IN_ROW = "bg-in-row"
+const IN_PUZZLE = "bg-in-puzzle"
+const WRONG = "bg-wrong"
 
 function coordToString({ x, y }: Coord): string {
   return `${x},${y}`
@@ -287,9 +287,9 @@ function App(props: { puzzle: Puzzle }) {
   createEffect(() => {
     let deadLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "DEAD").map(([k, v]) => k).join(" ")
     let liveLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "LIVE").map(([k, v]) => k).join(" ")
-    keyboard?.addButtonTheme(liveLetters, "bg-yellow-400!")
-    keyboard?.removeButtonTheme(deadLetters, "bg-yellow-400!")
-    keyboard?.addButtonTheme(deadLetters, "bg-gray-400!")
+    keyboard?.addButtonTheme(liveLetters, "bg-in-row!")
+    keyboard?.removeButtonTheme(deadLetters, "bg-in-row!")
+    keyboard?.addButtonTheme(deadLetters, "bg-wrong!")
   })
 
   addEventListener("fullscreenchange", () => { if (document.fullscreenElement !== appRef) setFullScreen(false) })
@@ -342,7 +342,7 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
 
 
   let reticleStyles = () => {
-    let numGuesses = props.guesses[coordToString(props.coords)]?.length || 0
+    let numGuesses = props.guesses[coordToString(props.coords)]?.length - 1 || 0
     return {
       width: `calc(100% / ${w})`,
       transform: `translate(calc(${100 * props.coords.x}% + -3*${numGuesses}px), calc(${100 * props.coords.y}% + -3*${numGuesses}px)`
@@ -358,7 +358,7 @@ function PuzzleGrid(props: { coords: Coord, puzzle: Puzzle, guesses: Record<stri
         status={status(props.guesses, { x, y }, props.puzzle)}
         guess={props.guesses[coordToString({ x, y })]} />
     }))}
-    <div style={reticleStyles()} class="pointer-events-none aspect-square absolute rounded-xl border-6 sm:border-8 border-red-400 transition-transform"></div>
+    <div style={reticleStyles()} class="pointer-events-none aspect-square absolute rounded-xl border-6 sm:border-8 border-reticle transition-transform"></div>
   </div>
 }
 
@@ -390,7 +390,7 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
         return (
           <div
             class="absolute w-full h-full"
-            style={{ transform: `translate(${i * -3}px, ${i * -3}px)` }}
+            style={{ transform: i > 0 ? `translate(${i * -3}px, ${i * -3}px)` : undefined }}
           >
             <div
               class={`w-full h-full border-gray-700 border rounded-xl flex items-center justify-center ${props.status[idx]}`}
