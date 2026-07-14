@@ -140,18 +140,19 @@ function Help() {
         </div>
       </div>
 
-      <h3 class="text-sm font-bold mb-3">KEYBOARD</h3>
-      <p class="mb-6">
-        Guessed letters in the keyboard turn yellow or gray depending on if that letter is stil somewhere in the puzzle or not.
-      </p>
-
       <h3 class="text-sm font-bold mb-3">STACKS</h3>
       <div class="flex items-center gap-4 mb-3">
         <Cell guess={["A", "T", "E"]} status={[WRONG, IN_ROW, CORRECT]} value="" size='sm' />
         Every guess you make in a cell stacks on top of your previous ones.
       </div>
+
       <p class="mb-6">
         Your latest guess sits on top. {hasTap() ? "Tap" : "Click"} the selected cell again to rotate the stack and see letters that got covered up.
+      </p>
+
+      <h3 class="text-sm font-bold mb-3">KEYBOARD</h3>
+      <p class="mb-6">
+        Letters in the keyboard turn orange or gray after you use them, showing if that letter is still somewhere in the puzzle or not.
       </p>
     </>
   )
