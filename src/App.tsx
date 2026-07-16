@@ -147,7 +147,7 @@ function Help() {
       </div>
 
       <p class="mb-6">
-        Your latest guess sits on top. {hasTap() ? "Tap" : "Click"} the selected cell again to rotate the stack and see letters that got covered up.
+        Your latest guess sits on top. {!hasTap() ? "Press Tab or click" : "Tap"} the selected cell again to rotate the stack and see letters that got covered up.
       </p>
 
       <h3 class="text-sm font-bold mb-3">KEYBOARD</h3>
@@ -241,6 +241,7 @@ function App(props: { puzzle: Puzzle }) {
   }
 
   const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.metaKey) return
     if (e.code === "ArrowUp") {
       move(0, -1)
     } else if (e.code === "ArrowDown") {
@@ -249,6 +250,9 @@ function App(props: { puzzle: Puzzle }) {
       move(-1, 0)
     } else if (e.code === "ArrowRight") {
       move(1, 0)
+    } else if (e.code === "Tab") {
+      e.preventDefault()
+      document.dispatchEvent(new CustomEvent("rotate-stack"))
     } else if (e.key >= "a" && e.key <= "z") {
       guess(e.key)
       // NOTE remove backspace bc what does that mean in a stack?
@@ -369,6 +373,14 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
   const isSelected = () => coords().x === props.x && coords().y === props.y
   const offset = () => (isSelected() && props.guess?.length ? stackOffset() % props.guess.length : 0)
   const [animPhase, setAnimPhase] = createSignal<"idle" | "top-out" | "bottom-in">("idle")
+
+  onMount(() => {
+    const handler = () => {
+      if (isSelected() && props.guess?.length) setAnimPhase("top-out")
+    }
+    document.addEventListener("rotate-stack", handler)
+    onCleanup(() => document.removeEventListener("rotate-stack", handler))
+  })
 
   return (
     <div
