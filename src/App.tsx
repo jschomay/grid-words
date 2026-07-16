@@ -158,6 +158,8 @@ function Help() {
 
       <h3 class="text-sm font-bold mb-3">CREDITS</h3>
       <p class="mb-6">Made by <a href="https://jeffschomay.com/" class="underline">Jeff Schomay</a>. Puzzles generated with <a href="https://github.com/jschomay/mini-gen" class="underline">mini-gen</a> using words from the <a href="https://github.com/Crossword-Nexus/collaborative-word-list" class="underline">Collaborative Word List</a>.</p>
+
+      <p class="mb-6"><a href="https://forms.gle/ezTqQDgpPc26vfgf6" class="underline">Give feedback or get in touch.</a></p>
     </>
   )
 }
