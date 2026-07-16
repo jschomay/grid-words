@@ -114,7 +114,7 @@ function Help() {
       <p class="mb-6 italic">Sudoku meets Wordle meets crosswords.</p>
       <h3 class="text-sm font-bold mb-3">Goal</h3>
       <p class="mb-6">Fill in every cell with the right letter to complete the word grid.</p>
-      <p class="mb-6">Each vertical column and horizontal row makes a complete word (some may be more than one word with no spaces or an abbreviation).</p>
+      <p class="mb-6">Each vertical column and horizontal row makes a complete word (some may be more than one word with no spaces, an abbreviation, or a proper noun).</p>
 
       <h3 class="text-sm font-bold mb-3">Controls</h3>
       <p class="mb-6">{hasTap() ? "Tap any cell" : "Click on any cell or use arrow keys"} to select it.  Use the visual keyboard {!hasTap() ? "or press any key" : ""} to fill the cell with that letter.</p>
@@ -154,6 +154,10 @@ function Help() {
       <p class="mb-6">
         Letters in the keyboard turn orange or gray after you use them, showing if that letter is still somewhere in the puzzle or not.
       </p>
+
+
+      <h3 class="text-sm font-bold mb-3">CREDITS</h3>
+      <p class="mb-6">Made by <a href="https://jeffschomay.com/" class="underline">Jeff Schomay</a>. Puzzles generated with <a href="https://github.com/jschomay/mini-gen" class="underline">mini-gen</a> using words from the <a href="https://github.com/Crossword-Nexus/collaborative-word-list" class="underline">Collaborative Word List</a>.</p>
     </>
   )
 }
@@ -194,7 +198,7 @@ function Win() {
     <div class="flex flex-col items-center">
       <h2 class="text-2xl text-center mb-1">PUZZLE COMPLETE!</h2>
       <p class="mb-3">Score: {score()}. Solved in {turns} turns, using {usedLetters} letters.</p>
-      <pre>{viz}</pre>
+      <pre class="leading-none">{viz}</pre>
       <span class="mt-2"></span>
       <button onclick={share}>{shareLabel()}</button>
       <p class="mt-3">Come back tomorrow for a new puzzle!</p>

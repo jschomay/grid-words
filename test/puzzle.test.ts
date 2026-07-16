@@ -1,4 +1,6 @@
 import { describe, it, assert, expect, test } from 'vitest'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 
 import IPuzz from '../src/puzzle.ts';
 
@@ -150,4 +152,15 @@ describe('ipuz parsing', () => {
   })
 });
 
+describe('real puzzle file', () => {
+  it('loads and initializes puzzle 1.ipuz', () => {
+    const data = JSON.parse(readFileSync(join(process.cwd(), 'public/puzzles/1.ipuz'), 'utf8'))
+    const p = new IPuzz(data)
+
+    expect(data.dimensions).to.deep.equal({ width: 5, height: 5 })
+    expect(p.current).to.be.a('string')
+    expect(p.current).to.not.equal('#')
+    expect(p.ipuz.solution).to.have.length(5)
+  })
+})
 
