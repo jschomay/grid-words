@@ -207,7 +207,7 @@ function Win() {
     <div class="flex flex-col items-center">
       <h2 class="text-2xl text-center mb-1">PUZZLE COMPLETE!</h2>
       <p class="mb-3">Score: {score()}. Solved in {turns} turns, using {usedLetters} letters.</p>
-      <pre class="leading-none">{viz}</pre>
+      <pre>{viz}</pre>
       <span class="mt-2"></span>
       <button onclick={share}>{shareLabel()}</button>
       <p class="mt-3">Come back tomorrow for a new puzzle!</p>
