@@ -182,13 +182,15 @@ function Win() {
 
   const [shareLabel, setShareLabel] = createSignal("Share")
   const share = async () => {
-    window.goatcounter.count({
-      path: 'share-button',
-      title: 'Puzzled solved',
-      referrer: score(),
-      event: true,
-      no_session: true
-    })
+    try {
+      window.goatcounter.count({
+        path: 'share-button',
+        title: 'Puzzled solved',
+        referrer: score(),
+        event: true,
+        no_session: true
+      })
+    } catch (_) {}
     const shareData = { title: "Grid Words", text: shareText + "\n", url: window.location.href }
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       await navigator.share(shareData)
@@ -250,13 +252,15 @@ function App(props: { puzzle: Puzzle }) {
     if (puzzleIsComplete(guesses(), puzzle)) {
       setModalContent("WIN")
       setSolved(true)
-      window.goatcounter.count({
-        path: 'puzzle-solved',
-        title: 'Puzzled solved',
-        referrer: score(),
-        event: true,
-        no_session: true
-      })
+      try {
+        window.goatcounter.count({
+          path: 'puzzle-solved',
+          title: 'Puzzled solved',
+          referrer: score(),
+          event: true,
+          no_session: true
+        })
+      } catch (_) {}
     }
   }
 
