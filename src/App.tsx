@@ -86,7 +86,16 @@ const [numGuesses, setNumGuesses] = createStore<number[][]>([[0]])
 const [solved, setSolved] = createSignal(false)
 const [letterState, setletterState] = createSignal<Map<string, "LIVE" | "DEAD">>(new Map())
 const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
-const [score, setScore] = createSignal<number>(0)
+const startTime = Date.now()
+const [elapsedSeconds, setElapsedSeconds] = createSignal(0)
+
+const totalMoves = () => numGuesses.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)
+
+const formatTime = (secs: number) => {
+  const m = Math.floor(secs / 60)
+  const s = secs % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
 
 function Modal(props: { close: () => void, children: JSX.Element }) {
   return (
@@ -171,12 +180,11 @@ function Win() {
     if (n < 4) return "🟨" // 2-3
     return "⬛" // 4+
   }
-  let turns = numGuesses.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)
-  let usedLetters = Object.keys(letterState()).length
+  let turns = totalMoves()
   let viz = numGuesses.map(row => row.map(value).join("")).join("\n")
   let shareText = [
     `Grid Words ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`,
-    `Score: ${score()}. Solved in ${turns} turns, using ${usedLetters} letters.`,
+    `Moves: ${turns}, Time: ${formatTime(elapsedSeconds())}`,
     viz
   ].join("\n")
 
@@ -186,11 +194,11 @@ function Win() {
       window.goatcounter.count({
         path: 'share-button',
         title: 'Puzzled solved',
-        referrer: score(),
+        referrer: turns,
         event: true,
         no_session: true
       })
-    } catch (_) {}
+    } catch (_) { }
     const shareData = { title: "Grid Words", text: shareText + "\n", url: window.location.href }
     if (navigator.share && (!navigator.canShare || navigator.canShare(shareData))) {
       await navigator.share(shareData)
@@ -208,7 +216,7 @@ function Win() {
   return (
     <div class="flex flex-col items-center">
       <h2 class="text-2xl text-center mb-1">PUZZLE COMPLETE!</h2>
-      <p class="mb-3">Score: {score()}. Solved in {turns} turns, using {usedLetters} letters.</p>
+      <p class="mb-3">Moves: {turns}, Time: {formatTime(elapsedSeconds())}</p>
       <pre>{viz}</pre>
       <span class="mt-2"></span>
       <button onclick={share}>{shareLabel()}</button>
@@ -241,12 +249,6 @@ function App(props: { puzzle: Puzzle }) {
     setStackOffset(0)
     setNumGuesses(coords().y, coords().x, n => n + 1)
 
-    if (puzzle.valueAt(coords()).toLowerCase() === guess) {
-      let tries = numGuesses[coords().y][coords().x]
-      let points = [100, 50, 25, 10][tries - 1] || 0
-      setScore(s => s += points)
-    }
-
     setletterState(s => ({ ...s, [guess]: letterIsInPuzzleStill(guess, guesses(), puzzle) ? "LIVE" : "DEAD" }))
 
     if (puzzleIsComplete(guesses(), puzzle)) {
@@ -256,11 +258,11 @@ function App(props: { puzzle: Puzzle }) {
         window.goatcounter.count({
           path: 'puzzle-solved',
           title: 'Puzzled solved',
-          referrer: score(),
+          referrer: totalMoves(),
           event: true,
           no_session: true
         })
-      } catch (_) {}
+      } catch (_) { }
     }
   }
 
@@ -297,6 +299,9 @@ function App(props: { puzzle: Puzzle }) {
 
   onMount(() => {
     document.addEventListener("keydown", handleKeyDown)
+    const timer = setInterval(() => {
+      if (!solved()) setElapsedSeconds(Math.floor((Date.now() - startTime) / 1000))
+    }, 1000)
     keyboard = new Keyboard({
       onKeyPress: (button: string) => handleKeyDown(new KeyboardEvent("keydown", button === "{bksp}" ? { code: "Backspace", key: "Backspace" } : { key: button })),
       layout: {
@@ -310,8 +315,11 @@ function App(props: { puzzle: Puzzle }) {
       },
       display: { '{bksp}': '↤' },
     })
+    onCleanup(() => {
+      clearInterval(timer)
+      document.removeEventListener("keydown", handleKeyDown)
+    })
   })
-  onCleanup(() => document.removeEventListener("keydown", handleKeyDown))
 
   createEffect(() => {
     let deadLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "DEAD").map(([k, v]) => k).join(" ")
@@ -335,7 +343,7 @@ function App(props: { puzzle: Puzzle }) {
       <Title />
       <div class="flex items-center gap-4">
         <span class="text-neutral-400 text-sm">{new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span>
-        <Show when={solved()} fallback={<span>Score: {score()}</span>}> <button onclick={() => setModalContent("WIN")}>Show score</button> </Show>
+        <Show when={solved()} fallback={<span class="min-w-24">Moves: {totalMoves()}<br />Time: {formatTime(elapsedSeconds())}</span>}> <button onclick={() => setModalContent("WIN")}>Show stats</button> </Show>
         <button onclick={() => setModalContent("HELP")}>How to play</button>
         <Show when={hasTap() && appRef?.requestFullscreen && !fullScreen()}>
           <button onclick={() => appRef.requestFullscreen().then(() => setFullScreen(true))}>Fullscreen</button>
