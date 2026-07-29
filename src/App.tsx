@@ -145,7 +145,7 @@ function Help() {
         </div>
         <div class="flex items-center gap-4">
           <Cell guess={["E"]} status={[WRONG]} value="" size='sm' />
-          Letter is not in the puzzle.
+          No more of this letter left in the puzzle.
         </div>
       </div>
 
@@ -161,8 +161,14 @@ function Help() {
 
       <h3 class="text-sm font-bold mb-3">KEYBOARD</h3>
       <p class="mb-6">
-        Letters in the keyboard turn orange or gray after you use them, showing if that letter is still somewhere in the puzzle or not.
+        The keyboard shows helpful context-relevant hints based on clues you have discovered:
       </p>
+      <ul class="list-disc list-inside mb-6">
+        <li>White: You haven't tried this letter yet.</li>
+        <li>Gray: No more of this letter left in the puzzle.</li>
+        <li>Red: This letter can't go in the current cell based on surrounding clues.</li>
+        <li>Orange: At least one more of this letter is in the puzzle.</li>
+      </ul>
 
 
       <h3 class="text-sm font-bold mb-3">CREDITS</h3>
@@ -322,11 +328,41 @@ function App(props: { puzzle: Puzzle }) {
   })
 
   createEffect(() => {
-    let deadLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "DEAD").map(([k, v]) => k).join(" ")
-    let liveLetters = [...Object.entries(letterState())].filter(([k, v]) => v === "LIVE").map(([k, v]) => k).join(" ")
-    keyboard?.addButtonTheme(liveLetters, "bg-in-row!")
-    keyboard?.removeButtonTheme(deadLetters, "bg-in-row!")
-    keyboard?.addButtonTheme(deadLetters, "bg-wrong!")
+    const c = coords()
+    const g = guesses()
+    const ls = letterState()
+
+    const blocked = new Set<string>()
+    for (let x = 0; x < puzzle.ipuz.dimensions.width; x++) {
+      const statuses = status(g, { x, y: c.y }, puzzle)
+      statuses?.forEach((s, i) => {
+        if (s === IN_PUZZLE) {
+          const guess = g[coordToString({ x, y: c.y })]?.[i]
+          if (guess) blocked.add(guess)
+        }
+      })
+    }
+    for (let y = 0; y < puzzle.ipuz.dimensions.height; y++) {
+      const statuses = status(g, { x: c.x, y }, puzzle)
+      statuses?.forEach((s, i) => {
+        if (s === IN_PUZZLE) {
+          const guess = g[coordToString({ x: c.x, y })]?.[i]
+          if (guess) blocked.add(guess)
+        }
+      })
+    }
+
+    const dead = [...Object.entries(ls)].filter(([_, v]) => v === "DEAD").map(([k]) => k).join(" ")
+    const live = [...Object.entries(ls)].filter(([k, v]) => v === "LIVE" && !blocked.has(k)).map(([k]) => k).join(" ")
+
+    const all = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+    keyboard?.removeButtonTheme(all, "bg-in-row!")
+    keyboard?.removeButtonTheme(all, "bg-wrong!")
+    keyboard?.removeButtonTheme(all, "bg-in-puzzle!")
+
+    keyboard?.addButtonTheme(live, "bg-in-row!")
+    keyboard?.addButtonTheme(dead, "bg-wrong!")
+    keyboard?.addButtonTheme([...blocked].join(" "), "bg-in-puzzle!")
   })
 
   addEventListener("fullscreenchange", () => { if (document.fullscreenElement !== appRef) setFullScreen(false) })

@@ -36,6 +36,7 @@ button {
 .hg-button {
   color: #111;
   text-transform: uppercase;
+  border: none !important;
 }
 
 .hg-theme-default {
