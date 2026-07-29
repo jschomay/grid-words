@@ -246,8 +246,12 @@ function App(props: { puzzle: Puzzle }) {
   }
   const guess = (guess: string) => {
     let cellGuessStack = guesses()[coordToString(coords())] || []
-    // no-op if this letter has already been guessed in this cell
-    if (cellGuessStack.includes(guess)) return
+    if (cellGuessStack.includes(guess)) {
+      if (!cellGuessStack.includes(puzzle.valueAt(coords()).toLowerCase())) {
+        document.dispatchEvent(new CustomEvent("peek-cell", { detail: guess }))
+      }
+      return
+    }
     // NOTE might be strange when typing a letter burried in the stack and nothing will happen
     if (cellGuessStack.includes(puzzle.valueAt(coords()).toLowerCase())) return
 
@@ -447,14 +451,30 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
   const fontSize = props.size == "sm" ? "text-2xl sm:text-4xl" : "text-4xl sm:text-6xl"
   const isSelected = () => coords().x === props.x && coords().y === props.y
   const offset = () => (isSelected() && props.guess?.length ? stackOffset() % props.guess.length : 0)
-  const [animPhase, setAnimPhase] = createSignal<"idle" | "top-out" | "bottom-in">("idle")
+  const [animPhase, setAnimPhase] = createSignal<"idle" | "top-out" | "bottom-in" | "peek-out" | "peek-in">("idle")
+  const [peekIndex, setPeekIndex] = createSignal(0)
 
   onMount(() => {
     const handler = () => {
       if (isSelected() && props.guess?.length) setAnimPhase("top-out")
     }
+    const peekHandler = (e: Event) => {
+      const letter = (e as CustomEvent).detail
+      if (isSelected() && props.guess?.length && letter) {
+        const displayedIdx = props.guess.findIndex(g => g === letter)
+        if (displayedIdx >= 0) {
+          const n = props.guess.length
+          setPeekIndex((displayedIdx + offset()) % n)
+          setAnimPhase("peek-out")
+        }
+      }
+    }
     document.addEventListener("rotate-stack", handler)
-    onCleanup(() => document.removeEventListener("rotate-stack", handler))
+    document.addEventListener("peek-cell", peekHandler)
+    onCleanup(() => {
+      document.removeEventListener("rotate-stack", handler)
+      document.removeEventListener("peek-cell", peekHandler)
+    })
   })
 
   return (
@@ -475,6 +495,7 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
         const idx = (i - offset() + props.guess.length) % props.guess.length
         const isTop = i === props.guess?.length - 1
         const isBottom = i === 0
+        const isPeekTarget = i === peekIndex()
         return (
           <div
             class="absolute w-full h-full"
@@ -486,13 +507,19 @@ function Cell(props: { x?: number, y?: number, value: string, status: string[], 
                 animation:
                   isTop && animPhase() === "top-out" ? "slide-out-left 200ms ease-out forwards" :
                     isBottom && animPhase() === "bottom-in" ? "slide-in-right 200ms ease-out forwards" :
-                      undefined,
+                      isPeekTarget && animPhase() === "peek-out" ? "slide-out-left 200ms ease-out forwards" :
+                        isPeekTarget && animPhase() === "peek-in" ? "slide-in-right 200ms ease-out forwards" :
+                          undefined,
               }}
               onAnimationEnd={() => {
                 if (isTop && animPhase() === "top-out") {
                   setAnimPhase("bottom-in")
                   setStackOffset((o) => o + 1)
                 } else if (isBottom && animPhase() === "bottom-in") {
+                  setAnimPhase("idle")
+                } else if (isPeekTarget && animPhase() === "peek-out") {
+                  setAnimPhase("peek-in")
+                } else if (isPeekTarget && animPhase() === "peek-in") {
                   setAnimPhase("idle")
                 }
               }}
