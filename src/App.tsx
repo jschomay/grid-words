@@ -11,6 +11,7 @@ const CORRECT = "bg-correct"
 const IN_ROW = "bg-in-row"
 const IN_PUZZLE = "bg-in-puzzle"
 const WRONG = "bg-wrong"
+const USED = "bg-reticle!"
 
 function coordToString({ x, y }: Coord): string {
   return `${x},${y}`
@@ -164,10 +165,12 @@ function Help() {
         The keyboard shows helpful context-relevant hints based on clues you have discovered:
       </p>
       <ul class="list-disc list-inside mb-6">
+        <li>White: You haven't tried this letter yet.</li>
         <li>Gray: No more of this letter is left in the puzzle.</li>
         <li>Blue: Solved for this cell.</li>
         <li>Red: This letter can't go in the current cell based on surrounding clues.</li>
         <li>Orange: This letter <i>might</i> go in the current cell based on surrounding clues.</li>
+        <li>Yellow: At least one of this letter is still in the puzzle.</li>
       </ul>
 
 
@@ -252,8 +255,8 @@ function App(props: { puzzle: Puzzle }) {
       }
       return
     }
-    // NOTE might be strange when typing a letter burried in the stack and nothing will happen
     if (cellGuessStack.includes(puzzle.valueAt(coords()).toLowerCase())) return
+    if (letterState()[guess] === "DEAD") return
 
     setGuesses((g) => ({ ...g, [coordToString(coords())]: [...cellGuessStack, guess] }))
     setStackOffset(0)
@@ -342,38 +345,46 @@ function App(props: { puzzle: Puzzle }) {
     const blocked = new Set<string>()
     const inRow = new Set<string>()
 
-    if (!solved) {
-      const scan = (coord: Coord) => {
-        const statuses = status(g, coord, puzzle)
-        statuses?.forEach((s, i) => {
-          const guess = g[coordToString(coord)]?.[i]
-          if (!guess) return
-          if (s === IN_PUZZLE) blocked.add(guess)
-          else if (s === IN_ROW) inRow.add(guess)
-        })
-      }
-      for (let x = 0; x < puzzle.ipuz.dimensions.width; x++) scan({ x, y: c.y })
-      for (let y = 0; y < puzzle.ipuz.dimensions.height; y++) scan({ x: c.x, y })
+    const scan = (coord: Coord) => {
+      const statuses = status(g, coord, puzzle)
+      statuses?.forEach((s, i) => {
+        const guess = g[coordToString(coord)]?.[i]
+        if (!guess) return
+        if (s === IN_PUZZLE) blocked.add(guess)
+        else if (s === IN_ROW) inRow.add(guess)
+      })
     }
-
-    // Don't show orange for letters already in the current stack
-    const stackLetters = new Set(g[coordToString(c)])
-    const candidate = [...inRow].filter(k => !blocked.has(k) && !stackLetters.has(k)).join(" ")
+    for (let x = 0; x < puzzle.ipuz.dimensions.width; x++) scan({ x, y: c.y })
+    for (let y = 0; y < puzzle.ipuz.dimensions.height; y++) scan({ x: c.x, y })
 
     const deadLetters = [...Object.entries(ls)].filter(([_, v]) => v === "DEAD").map(([k]) => k)
     const solvedLetter = solved ? stack![stack.length - 1] : undefined
-    const dead = deadLetters.filter(k => k !== solvedLetter).join(" ")
+
+    const notSolved = (k: string) => k !== solvedLetter
+
+    const candidate = [...inRow].filter(k => !blocked.has(k) && notSolved(k)).join(" ")
+
+    const dead = deadLetters.filter(notSolved).join(" ")
+    const blockedKeys = [...blocked].filter(notSolved).join(" ")
 
     const all = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
     keyboard?.removeButtonTheme(all, "bg-in-row!")
     keyboard?.removeButtonTheme(all, "bg-wrong!")
     keyboard?.removeButtonTheme(all, "bg-in-puzzle!")
     keyboard?.removeButtonTheme(all, "bg-correct!")
+    keyboard?.removeButtonTheme(all, USED)
 
     keyboard?.addButtonTheme(candidate, "bg-in-row!")
     keyboard?.addButtonTheme(dead, "bg-wrong!")
-    keyboard?.addButtonTheme([...blocked].join(" "), "bg-in-puzzle!")
+    keyboard?.addButtonTheme(blockedKeys, "bg-in-puzzle!")
     if (solved) keyboard?.addButtonTheme(solvedLetter!, "bg-correct!")
+
+    const themed = new Set<string>(inRow)
+    blocked.forEach(l => themed.add(l))
+    deadLetters.forEach(l => themed.add(l))
+    if (solvedLetter) themed.add(solvedLetter)
+    const used = [...new Set(Object.values(g).flat())].filter(l => !themed.has(l)).join(" ")
+    keyboard?.addButtonTheme(used, USED)
   })
 
   addEventListener("fullscreenchange", () => { if (document.fullscreenElement !== appRef) setFullScreen(false) })
