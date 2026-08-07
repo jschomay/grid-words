@@ -238,6 +238,11 @@ function App(props: { puzzle: Puzzle }) {
   const puzzle = props.puzzle
   setNumGuesses(puzzle.ipuz.solution.map(row => row.map(() => 0)))
 
+  if (!localStorage.getItem("grid-words-visited")) {
+    localStorage.setItem("grid-words-visited", "true")
+    setModalContent("HELP")
+  }
+
   const move = (dx: number, dy: number, force = false) => {
     const newCoord = {
       x: Math.min(puzzle.ipuz.dimensions.width - 1, Math.max(0, coords().x + dx)),
