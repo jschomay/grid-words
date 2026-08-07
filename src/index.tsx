@@ -3,18 +3,12 @@ import { render } from 'solid-js/web'
 import './index.css'
 import App from './App.tsx'
 import Puzzle from './puzzle'
+import { getPuzzleId } from './puzzleId'
 
 const loading = document.getElementById('loading')
 const root = document.getElementById('root')
 
-const BASE = Date.UTC(2026, 6, 16)
-const DAY = 86_400_000
-
-function getPuzzleIndex(): number {
-  return Math.floor((new Date().setHours(0, 0, 0, 0) - BASE) / DAY) % 300
-}
-
-fetch(`/puzzles/${getPuzzleIndex() + 1}.ipuz`)
+fetch(`/puzzles/${getPuzzleId()}.ipuz`)
   .then(r => r.json())
   .then(data => {
     const puzzle = new Puzzle(data)

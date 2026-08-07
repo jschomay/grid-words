@@ -1,6 +1,7 @@
 import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js'
 import type { JSX } from 'solid-js'
 import Puzzle from './puzzle'
+import { getPuzzleId } from './puzzleId'
 import { createStore } from 'solid-js/store'
 import Keyboard from 'simple-keyboard'
 import 'simple-keyboard/build/css/index.css'
@@ -89,6 +90,15 @@ const [letterState, setletterState] = createSignal<Map<string, "LIVE" | "DEAD">>
 const [modalContent, setModalContent] = createSignal<null | "HELP" | "WIN">(null)
 const startTime = Date.now()
 const [elapsedSeconds, setElapsedSeconds] = createSignal(0)
+
+const getPlayerId = (): string => {
+  let id = localStorage.getItem("playerId")
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem("playerId", id)
+  }
+  return id
+}
 
 const totalMoves = () => numGuesses.reduce((sum, row) => sum + row.reduce((a, b) => a + b, 0), 0)
 
@@ -281,6 +291,16 @@ function App(props: { puzzle: Puzzle }) {
           no_session: true
         })
       } catch (_) { }
+      fetch('/api/score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          playerId: getPlayerId(),
+          puzzleId: getPuzzleId(),
+          score: totalMoves(),
+          timeSeconds: elapsedSeconds(),
+        }),
+      }).catch(() => { })
     }
   }
 

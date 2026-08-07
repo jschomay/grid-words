@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grid Words · Leaderboard</title>
+    <style>
+      body {
+        background: #262626;
+        color: #fafafa;
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+      h1 { font-size: 1.25rem; margin: 0; }
+      .nav { display: flex; align-items: center; gap: 12px; }
+      .nav button {
+        background: #404040;
+        color: #fafafa;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .nav button:disabled { opacity: 0.35; cursor: default; }
+      table { border-collapse: collapse; width: 100%; max-width: 420px; }
+      th, td { padding: 8px 12px; text-align: center; }
+      th { border-bottom: 1px solid #525252; color: #a3a3a3; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+      td { border-bottom: 1px solid #333; }
+      td:first-child { color: #a3a3a3; }
+      .you { background: #7f1d1d; font-weight: bold; }
+      #youRow { width: 100%; max-width: 420px; text-align: center; color: #f87171; }
+      #empty, #error { color: #a3a3a3; }
+      a { color: #93c5fd; }
+      .muted { color: #a3a3a3; font-size: 0.85rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Leaderboard</h1>
+    <div class="nav">
+      <button id="prev" title="Previous puzzle">&lt; Prev</button>
+      <span id="puzzleLabel">—</span>
+      <button id="next" title="Next puzzle">Next &gt;</button>
+    </div>
+    <table id="board">
+      <thead>
+        <tr><th>Rank</th><th>Player</th><th>Moves</th><th>Time</th></tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="youRow" hidden></div>
+    <p id="empty" hidden>No results yet for this puzzle.</p>
+    <p id="error" hidden></p>
+    <a href="/">Play today's puzzle</a>
+    <script>
+      const BASE = Date.UTC(2026, 6, 16)
+      const DAY = 86_400_000
+      const COUNT = 300
+
+      const todayId = () => Math.floor((new Date().setHours(0, 0, 0, 0) - BASE) / DAY) % COUNT + 1
+      const puzzleDate = (pid) => new Date(BASE + (pid - 1) * DAY)
+      const fmtTime = (s) => {
+        const m = Math.floor(s / 60)
+        const sec = s % 60
+        return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
+      }
+
+      const params = new URLSearchParams(location.search)
+      let pid = parseInt(params.get("puzzleId") || "", 10)
+      if (!Number.isInteger(pid)) pid = todayId()
+      pid = Math.min(Math.max(pid, 1), todayId())
+
+      const playerId = localStorage.getItem("playerId")
+
+      const nav = (delta) => {
+        const next = pid + delta
+        if (next < 1 || next > todayId()) return
+        location.search = `?puzzleId=${next}`
+      }
+
+      document.getElementById("prev").onclick = () => nav(-1)
+      document.getElementById("next").onclick = () => nav(1)
+      document.getElementById("prev").disabled = pid <= 1
+      document.getElementById("next").disabled = pid >= todayId()
+      document.getElementById("puzzleLabel").textContent =
+        puzzleDate(pid).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) +
+        " · Puzzle " + pid
+
+      const rowsEl = document.getElementById("rows")
+      const youRowEl = document.getElementById("youRow")
+
+      function renderRow({ rank, score, timeSeconds, playerId: id }) {
+        const tr = document.createElement("tr")
+        if (id && playerId && id === playerId) tr.className = "you"
+        const cells = [rank, `Player ${rank}`, score, fmtTime(timeSeconds)]
+        cells.forEach((c) => {
+          const td = document.createElement("td")
+          td.textContent = c
+          tr.appendChild(td)
+        })
+        return tr
+      }
+
+      async function load() {
+        const url = `/api/leaderboard/${pid}` + (playerId ? `?playerId=${encodeURIComponent(playerId)}` : "")
+        const res = await fetch(url)
+        if (!res.ok) throw new Error("failed to load leaderboard")
+        const data = await res.json()
+
+        if (data.top.length === 0) {
+          document.getElementById("empty").hidden = false
+        }
+        data.top.forEach((row) => rowsEl.appendChild(renderRow(row)))
+
+        if (data.you) {
+          youRowEl.hidden = false
+          youRowEl.textContent =
+            `Your score: rank #${data.you.rank} · ${data.you.score} moves · ${fmtTime(data.you.timeSeconds)}`
+        }
+      }
+
+      load().catch((e) => {
+        const el = document.getElementById("error")
+        el.textContent = e.message || "Something went wrong."
+        el.hidden = false
+      })
+    </script>
+  </body>
+</html>
