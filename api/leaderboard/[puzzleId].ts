@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http'
-import { getRedis, resultKey, leaderboardKey } from '../_redis.ts'
+import { getRedis, resultKey, leaderboardKey } from '../_redis.js'
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
